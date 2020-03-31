@@ -136,12 +136,12 @@ BinaryOperator: '+' | '-' | lessThan | '#' | TAND
 
 Expression:                                     
       Prefix Term
+    | '*' Term
+    | Term
     | Expression BinaryOperator Term           @{ @i @Expression.ids@ = addChildrenMode(@Expression.1.ids@, @Term.ids@, FALSE); @}
     ;
 
-Prefix:  
-    | TNOT 
-    | '*' 
+Prefix: TNOT 
     | '-'
     ;
 
@@ -155,7 +155,7 @@ Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(addChild(newTree(
 
 Term: 
     Factor
-    | Call
+    | id                    @{ @i @Term.ids@ = addChild(newTree("!Factors"), @id.sym@); @}
     | Term '*' Factor   
     @{ 
         @i @Term.ids@ = addChildrenMode(@Term.1.ids@, @Factor.ids@, FALSE); 
@@ -165,7 +165,7 @@ Term:
 Factor: 
     number                  @{ @i @Factor.ids@ = single("!number node"); @}
     | '(' Expression ')'    
-    | id                    @{ @i @Factor.ids@ = addChild(newTree("!Factors"), @id.sym@); @}
+    | Call
     ; 
 
 %%

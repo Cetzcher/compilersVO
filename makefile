@@ -1,7 +1,7 @@
 
 funclang: 
 	ox flan2.y scanner.flex
-	yacc -t -d -v  oxout.y
+	bison --report=all --report-file=pars.report -t -d -v  oxout.y
 	flex oxout.l
 	gcc -g scope.c lex.yy.c y.tab.c -w   -lm
 
