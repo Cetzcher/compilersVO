@@ -1,0 +1,25 @@
+function_A(A_arg1, A_arg2, A_arg3)
+    var A_L1 := (A_arg1 + 25);
+    if A_arg1 <= 10 then
+        var a := 1;
+        var b := 3;
+        var c := a;
+    else
+        var f := 3;
+        var a := A_arg1;
+        25 + a + f;
+        A_L1 := A_arg1;
+        if a <= A_arg2 then
+            *(a) := (f + 3) * 5;
+            var a := 3;
+            A_L1 : loop
+                S : loop
+                    var p := 3;
+                    p := (32 + p) * p;
+                    A_arg1 := 2;
+                    cont A_L1;
+                end;
+            end;
+        end;
+    end;
+end;

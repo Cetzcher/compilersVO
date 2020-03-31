@@ -1,0 +1,1038 @@
+Terminals unused in grammar
+
+   TPROC
+
+
+State 12 conflicts: 1 shift/reduce
+State 21 conflicts: 3 shift/reduce
+State 23 conflicts: 1 shift/reduce
+State 52 conflicts: 1 shift/reduce
+State 55 conflicts: 1 shift/reduce
+State 63 conflicts: 1 shift/reduce
+State 65 conflicts: 1 shift/reduce
+State 72 conflicts: 1 shift/reduce
+State 77 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: yyyAugNonterm $end
+
+    1 $@1: %empty
+
+    2 yyyAugNonterm: $@1 Program
+
+    3 Program: FuncList
+
+    4 FuncList: Funcdef
+    5         | FuncList Funcdef
+
+    6 Funcdef: id '(' ArgList ')' StmtList TEND ';'
+
+    7 ArgList: %empty
+    8        | id
+    9        | ArgList ',' id
+
+   10 StmtList: Stmt ';'
+   11         | StmtList Stmt ';'
+
+   12 Stmt: TVAR id assignment Expression
+   13     | id assignment Expression
+   14     | TIF Expression TTHEN StmtList TEND
+   15     | TIF Expression TTHEN StmtList TELSE StmtList TEND
+   16     | id ':' TLOOP StmtList TEND
+   17     | TBREAK id
+   18     | TCONT id
+   19     | '*' Term assignment Expression
+   20     | Expression
+   21     | TRETURN Expression
+
+   22 BinaryOperator: '+'
+   23               | '-'
+   24               | lessThan
+   25               | '#'
+   26               | TAND
+
+   27 Expression: Prefix Term
+   28           | Expression BinaryOperator Term
+
+   29 Prefix: %empty
+   30       | TNOT
+   31       | '*'
+   32       | '-'
+
+   33 CallArgs: %empty
+   34         | Expression
+   35         | CallArgs ',' Expression
+
+   36 Call: id '(' CallArgs ')'
+
+   37 Term: Factor
+   38     | Call
+   39     | Term '*' Factor
+
+   40 Factor: number
+   41       | '(' Expression ')'
+   42       | id
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'#' (35) 25
+'(' (40) 6 36 41
+')' (41) 6 36 41
+'*' (42) 19 31 39
+'+' (43) 22
+',' (44) 9 35
+'-' (45) 23 32
+':' (58) 16
+';' (59) 6 10 11
+error (256)
+TIF (258) 14 15
+TTHEN (259) 14 15
+TELSE (260) 15
+TEND (261) 6 14 15 16
+TRETURN (262) 21
+TLOOP (263) 16
+TBREAK (264) 17
+TCONT (265) 18
+TVAR (266) 12
+TNOT (267) 30
+TAND (268) 26
+TPROC (269)
+id (270) 6 8 9 12 13 16 17 18 36 42
+number (271) 40
+lessThan (272) 24
+assignment (273) 12 13 19
+
+
+Nonterminals, with rules where they appear
+
+$accept (28)
+    on left: 0
+yyyAugNonterm (29)
+    on left: 2, on right: 0
+$@1 (30)
+    on left: 1, on right: 2
+Program (31)
+    on left: 3, on right: 2
+FuncList (32)
+    on left: 4 5, on right: 3 5
+Funcdef (33)
+    on left: 6, on right: 4 5
+ArgList (34)
+    on left: 7 8 9, on right: 6 9
+StmtList (35)
+    on left: 10 11, on right: 6 11 14 15 16
+Stmt (36)
+    on left: 12 13 14 15 16 17 18 19 20 21, on right: 10 11
+BinaryOperator (37)
+    on left: 22 23 24 25 26, on right: 28
+Expression (38)
+    on left: 27 28, on right: 12 13 14 15 19 20 21 28 34 35 41
+Prefix (39)
+    on left: 29 30 31 32, on right: 27
+CallArgs (40)
+    on left: 33 34 35, on right: 35 36
+Call (41)
+    on left: 36, on right: 38
+Term (42)
+    on left: 37 38 39, on right: 19 27 28 39
+Factor (43)
+    on left: 40 41 42, on right: 37 39
+
+
+State 0
+
+    0 $accept: . yyyAugNonterm $end
+
+    $default  reduce using rule 1 ($@1)
+
+    yyyAugNonterm  go to state 1
+    $@1            go to state 2
+
+
+State 1
+
+    0 $accept: yyyAugNonterm . $end
+
+    $end  shift, and go to state 3
+
+
+State 2
+
+    2 yyyAugNonterm: $@1 . Program
+
+    id  shift, and go to state 4
+
+    Program   go to state 5
+    FuncList  go to state 6
+    Funcdef   go to state 7
+
+
+State 3
+
+    0 $accept: yyyAugNonterm $end .
+
+    $default  accept
+
+
+State 4
+
+    6 Funcdef: id . '(' ArgList ')' StmtList TEND ';'
+
+    '('  shift, and go to state 8
+
+
+State 5
+
+    2 yyyAugNonterm: $@1 Program .
+
+    $default  reduce using rule 2 (yyyAugNonterm)
+
+
+State 6
+
+    3 Program: FuncList .
+    5 FuncList: FuncList . Funcdef
+
+    id  shift, and go to state 4
+
+    $default  reduce using rule 3 (Program)
+
+    Funcdef  go to state 9
+
+
+State 7
+
+    4 FuncList: Funcdef .
+
+    $default  reduce using rule 4 (FuncList)
+
+
+State 8
+
+    6 Funcdef: id '(' . ArgList ')' StmtList TEND ';'
+
+    id  shift, and go to state 10
+
+    $default  reduce using rule 7 (ArgList)
+
+    ArgList  go to state 11
+
+
+State 9
+
+    5 FuncList: FuncList Funcdef .
+
+    $default  reduce using rule 5 (FuncList)
+
+
+State 10
+
+    8 ArgList: id .
+
+    $default  reduce using rule 8 (ArgList)
+
+
+State 11
+
+    6 Funcdef: id '(' ArgList . ')' StmtList TEND ';'
+    9 ArgList: ArgList . ',' id
+
+    ')'  shift, and go to state 12
+    ','  shift, and go to state 13
+
+
+State 12
+
+    6 Funcdef: id '(' ArgList ')' . StmtList TEND ';'
+
+    TIF      shift, and go to state 14
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    StmtList    go to state 23
+    Stmt        go to state 24
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 13
+
+    9 ArgList: ArgList ',' . id
+
+    id  shift, and go to state 27
+
+
+State 14
+
+   14 Stmt: TIF . Expression TTHEN StmtList TEND
+   15     | TIF . Expression TTHEN StmtList TELSE StmtList TEND
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 29
+    Prefix      go to state 26
+
+
+State 15
+
+   21 Stmt: TRETURN . Expression
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 30
+    Prefix      go to state 26
+
+
+State 16
+
+   17 Stmt: TBREAK . id
+
+    id  shift, and go to state 31
+
+
+State 17
+
+   18 Stmt: TCONT . id
+
+    id  shift, and go to state 32
+
+
+State 18
+
+   12 Stmt: TVAR . id assignment Expression
+
+    id  shift, and go to state 33
+
+
+State 19
+
+   30 Prefix: TNOT .
+
+    $default  reduce using rule 30 (Prefix)
+
+
+State 20
+
+   13 Stmt: id . assignment Expression
+   16     | id . ':' TLOOP StmtList TEND
+
+    assignment  shift, and go to state 34
+    ':'         shift, and go to state 35
+
+
+State 21
+
+   19 Stmt: '*' . Term assignment Expression
+   31 Prefix: '*' .
+
+    id      shift, and go to state 36
+    number  shift, and go to state 37
+    '('     shift, and go to state 38
+
+    id      [reduce using rule 31 (Prefix)]
+    number  [reduce using rule 31 (Prefix)]
+    '('     [reduce using rule 31 (Prefix)]
+
+    Call    go to state 39
+    Term    go to state 40
+    Factor  go to state 41
+
+
+State 22
+
+   32 Prefix: '-' .
+
+    $default  reduce using rule 32 (Prefix)
+
+
+State 23
+
+    6 Funcdef: id '(' ArgList ')' StmtList . TEND ';'
+   11 StmtList: StmtList . Stmt ';'
+
+    TIF      shift, and go to state 14
+    TEND     shift, and go to state 42
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    Stmt        go to state 43
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 24
+
+   10 StmtList: Stmt . ';'
+
+    ';'  shift, and go to state 44
+
+
+State 25
+
+   20 Stmt: Expression .
+   28 Expression: Expression . BinaryOperator Term
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 20 (Stmt)
+
+    BinaryOperator  go to state 50
+
+
+State 26
+
+   27 Expression: Prefix . Term
+
+    id      shift, and go to state 36
+    number  shift, and go to state 37
+    '('     shift, and go to state 38
+
+    Call    go to state 39
+    Term    go to state 51
+    Factor  go to state 41
+
+
+State 27
+
+    9 ArgList: ArgList ',' id .
+
+    $default  reduce using rule 9 (ArgList)
+
+
+State 28
+
+   31 Prefix: '*' .
+
+    $default  reduce using rule 31 (Prefix)
+
+
+State 29
+
+   14 Stmt: TIF Expression . TTHEN StmtList TEND
+   15     | TIF Expression . TTHEN StmtList TELSE StmtList TEND
+   28 Expression: Expression . BinaryOperator Term
+
+    TTHEN     shift, and go to state 52
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    BinaryOperator  go to state 50
+
+
+State 30
+
+   21 Stmt: TRETURN Expression .
+   28 Expression: Expression . BinaryOperator Term
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 21 (Stmt)
+
+    BinaryOperator  go to state 50
+
+
+State 31
+
+   17 Stmt: TBREAK id .
+
+    $default  reduce using rule 17 (Stmt)
+
+
+State 32
+
+   18 Stmt: TCONT id .
+
+    $default  reduce using rule 18 (Stmt)
+
+
+State 33
+
+   12 Stmt: TVAR id . assignment Expression
+
+    assignment  shift, and go to state 53
+
+
+State 34
+
+   13 Stmt: id assignment . Expression
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 54
+    Prefix      go to state 26
+
+
+State 35
+
+   16 Stmt: id ':' . TLOOP StmtList TEND
+
+    TLOOP  shift, and go to state 55
+
+
+State 36
+
+   36 Call: id . '(' CallArgs ')'
+   42 Factor: id .
+
+    '('  shift, and go to state 56
+
+    $default  reduce using rule 42 (Factor)
+
+
+State 37
+
+   40 Factor: number .
+
+    $default  reduce using rule 40 (Factor)
+
+
+State 38
+
+   41 Factor: '(' . Expression ')'
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 57
+    Prefix      go to state 26
+
+
+State 39
+
+   38 Term: Call .
+
+    $default  reduce using rule 38 (Term)
+
+
+State 40
+
+   19 Stmt: '*' Term . assignment Expression
+   39 Term: Term . '*' Factor
+
+    assignment  shift, and go to state 58
+    '*'         shift, and go to state 59
+
+
+State 41
+
+   37 Term: Factor .
+
+    $default  reduce using rule 37 (Term)
+
+
+State 42
+
+    6 Funcdef: id '(' ArgList ')' StmtList TEND . ';'
+
+    ';'  shift, and go to state 60
+
+
+State 43
+
+   11 StmtList: StmtList Stmt . ';'
+
+    ';'  shift, and go to state 61
+
+
+State 44
+
+   10 StmtList: Stmt ';' .
+
+    $default  reduce using rule 10 (StmtList)
+
+
+State 45
+
+   26 BinaryOperator: TAND .
+
+    $default  reduce using rule 26 (BinaryOperator)
+
+
+State 46
+
+   24 BinaryOperator: lessThan .
+
+    $default  reduce using rule 24 (BinaryOperator)
+
+
+State 47
+
+   22 BinaryOperator: '+' .
+
+    $default  reduce using rule 22 (BinaryOperator)
+
+
+State 48
+
+   23 BinaryOperator: '-' .
+
+    $default  reduce using rule 23 (BinaryOperator)
+
+
+State 49
+
+   25 BinaryOperator: '#' .
+
+    $default  reduce using rule 25 (BinaryOperator)
+
+
+State 50
+
+   28 Expression: Expression BinaryOperator . Term
+
+    id      shift, and go to state 36
+    number  shift, and go to state 37
+    '('     shift, and go to state 38
+
+    Call    go to state 39
+    Term    go to state 62
+    Factor  go to state 41
+
+
+State 51
+
+   27 Expression: Prefix Term .
+   39 Term: Term . '*' Factor
+
+    '*'  shift, and go to state 59
+
+    $default  reduce using rule 27 (Expression)
+
+
+State 52
+
+   14 Stmt: TIF Expression TTHEN . StmtList TEND
+   15     | TIF Expression TTHEN . StmtList TELSE StmtList TEND
+
+    TIF      shift, and go to state 14
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    StmtList    go to state 63
+    Stmt        go to state 24
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 53
+
+   12 Stmt: TVAR id assignment . Expression
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 64
+    Prefix      go to state 26
+
+
+State 54
+
+   13 Stmt: id assignment Expression .
+   28 Expression: Expression . BinaryOperator Term
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 13 (Stmt)
+
+    BinaryOperator  go to state 50
+
+
+State 55
+
+   16 Stmt: id ':' TLOOP . StmtList TEND
+
+    TIF      shift, and go to state 14
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    StmtList    go to state 65
+    Stmt        go to state 24
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 56
+
+   36 Call: id '(' . CallArgs ')'
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    ')'       reduce using rule 33 (CallArgs)
+    ','       reduce using rule 33 (CallArgs)
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 66
+    Prefix      go to state 26
+    CallArgs    go to state 67
+
+
+State 57
+
+   28 Expression: Expression . BinaryOperator Term
+   41 Factor: '(' Expression . ')'
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    ')'       shift, and go to state 68
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    BinaryOperator  go to state 50
+
+
+State 58
+
+   19 Stmt: '*' Term assignment . Expression
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 69
+    Prefix      go to state 26
+
+
+State 59
+
+   39 Term: Term '*' . Factor
+
+    id      shift, and go to state 70
+    number  shift, and go to state 37
+    '('     shift, and go to state 38
+
+    Factor  go to state 71
+
+
+State 60
+
+    6 Funcdef: id '(' ArgList ')' StmtList TEND ';' .
+
+    $default  reduce using rule 6 (Funcdef)
+
+
+State 61
+
+   11 StmtList: StmtList Stmt ';' .
+
+    $default  reduce using rule 11 (StmtList)
+
+
+State 62
+
+   28 Expression: Expression BinaryOperator Term .
+   39 Term: Term . '*' Factor
+
+    '*'  shift, and go to state 59
+
+    $default  reduce using rule 28 (Expression)
+
+
+State 63
+
+   11 StmtList: StmtList . Stmt ';'
+   14 Stmt: TIF Expression TTHEN StmtList . TEND
+   15     | TIF Expression TTHEN StmtList . TELSE StmtList TEND
+
+    TIF      shift, and go to state 14
+    TELSE    shift, and go to state 72
+    TEND     shift, and go to state 73
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    Stmt        go to state 43
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 64
+
+   12 Stmt: TVAR id assignment Expression .
+   28 Expression: Expression . BinaryOperator Term
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 12 (Stmt)
+
+    BinaryOperator  go to state 50
+
+
+State 65
+
+   11 StmtList: StmtList . Stmt ';'
+   16 Stmt: id ':' TLOOP StmtList . TEND
+
+    TIF      shift, and go to state 14
+    TEND     shift, and go to state 74
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    Stmt        go to state 43
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 66
+
+   28 Expression: Expression . BinaryOperator Term
+   34 CallArgs: Expression .
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 34 (CallArgs)
+
+    BinaryOperator  go to state 50
+
+
+State 67
+
+   35 CallArgs: CallArgs . ',' Expression
+   36 Call: id '(' CallArgs . ')'
+
+    ')'  shift, and go to state 75
+    ','  shift, and go to state 76
+
+
+State 68
+
+   41 Factor: '(' Expression ')' .
+
+    $default  reduce using rule 41 (Factor)
+
+
+State 69
+
+   19 Stmt: '*' Term assignment Expression .
+   28 Expression: Expression . BinaryOperator Term
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 19 (Stmt)
+
+    BinaryOperator  go to state 50
+
+
+State 70
+
+   42 Factor: id .
+
+    $default  reduce using rule 42 (Factor)
+
+
+State 71
+
+   39 Term: Term '*' Factor .
+
+    $default  reduce using rule 39 (Term)
+
+
+State 72
+
+   15 Stmt: TIF Expression TTHEN StmtList TELSE . StmtList TEND
+
+    TIF      shift, and go to state 14
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    StmtList    go to state 77
+    Stmt        go to state 24
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 73
+
+   14 Stmt: TIF Expression TTHEN StmtList TEND .
+
+    $default  reduce using rule 14 (Stmt)
+
+
+State 74
+
+   16 Stmt: id ':' TLOOP StmtList TEND .
+
+    $default  reduce using rule 16 (Stmt)
+
+
+State 75
+
+   36 Call: id '(' CallArgs ')' .
+
+    $default  reduce using rule 36 (Call)
+
+
+State 76
+
+   35 CallArgs: CallArgs ',' . Expression
+
+    TNOT  shift, and go to state 19
+    '*'   shift, and go to state 28
+    '-'   shift, and go to state 22
+
+    $default  reduce using rule 29 (Prefix)
+
+    Expression  go to state 78
+    Prefix      go to state 26
+
+
+State 77
+
+   11 StmtList: StmtList . Stmt ';'
+   15 Stmt: TIF Expression TTHEN StmtList TELSE StmtList . TEND
+
+    TIF      shift, and go to state 14
+    TEND     shift, and go to state 79
+    TRETURN  shift, and go to state 15
+    TBREAK   shift, and go to state 16
+    TCONT    shift, and go to state 17
+    TVAR     shift, and go to state 18
+    TNOT     shift, and go to state 19
+    id       shift, and go to state 20
+    '*'      shift, and go to state 21
+    '-'      shift, and go to state 22
+
+    id        [reduce using rule 29 (Prefix)]
+    $default  reduce using rule 29 (Prefix)
+
+    Stmt        go to state 43
+    Expression  go to state 25
+    Prefix      go to state 26
+
+
+State 78
+
+   28 Expression: Expression . BinaryOperator Term
+   35 CallArgs: CallArgs ',' Expression .
+
+    TAND      shift, and go to state 45
+    lessThan  shift, and go to state 46
+    '+'       shift, and go to state 47
+    '-'       shift, and go to state 48
+    '#'       shift, and go to state 49
+
+    $default  reduce using rule 35 (CallArgs)
+
+    BinaryOperator  go to state 50
+
+
+State 79
+
+   15 Stmt: TIF Expression TTHEN StmtList TELSE StmtList TEND .
+
+    $default  reduce using rule 15 (Stmt)

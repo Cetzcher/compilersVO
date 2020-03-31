@@ -1,0 +1,7 @@
+f()
+    return 1;
+end;
+
+g()
+    f();
+end;

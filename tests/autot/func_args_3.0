@@ -1,0 +1,4 @@
+f(a, b, c)
+    var y := b;
+    var x := a;
+end;
