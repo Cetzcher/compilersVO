@@ -4,10 +4,7 @@
     int yylex(void);
     void yyerror(char* );
     #include "scope.h"
-
-    void dbg(char* text) {
-        printf("\t\t%s\n", text);
-    }
+    //yydebug = 1;
 %}
 
 %token TIF
@@ -21,7 +18,6 @@
 %token TVAR
 %token TNOT
 %token TAND
-%token TPROC
 
 %token id
 %token number
@@ -29,146 +25,145 @@
 %token assignment   /* := */
 
 
-
-@autosyn ids
 @autosyn context
 @autoinh inherited
+@autosyn ids
+@autosyn sym
 
-@attributes { char* name;} id
-@attributes { t_sym_table* ids; } ArgList Expr ExprList Term PrefixTerm
-@attributes { t_sym_table* context; t_sym_table* inherited; } FuncdefList Funcdef StatList Stat VarDef VarAssignment
-
+@attributes { SymbolTree* sym;} id LoopHead CallStart
+@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall
+@attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
-
 %%
-
-Program: FuncdefList @{ @i @FuncdefList.inherited@ = empty_node(); @t dbg("Program"); @}
+Program: FuncList @{ @i @FuncList.inherited@ = @FuncList.context@; @t debugSymTree(@FuncList.context@, 0); @}
     ;
 
-FuncdefList: Funcdef
-    @{
-        @i @FuncdefList.context@ = @Funcdef.context@;  @t  dbg("Funcdeflist -> Funcdef");
-        @i @Funcdef.inherited@ = rt_init();
-    @}
-    | FuncdefList Funcdef ';'
-    @{
-        @i @FuncdefList.0.context@ = append_end(@FuncdefList.1.context@, @Funcdef.context@); printf("Funcdeflist -> Funcdeflist ';' Funcdef \n");
-        @i @Funcdef.inherited@ = @FuncdefList.1.context@;
-        @i @FuncdefList.1.inherited@ = @FuncdefList.0.context@;
-    @}
-    ;
-
-Funcdef: id '(' ArgList ')' StatList TEND
+FuncList:
+    Funcdef
     @{ 
-        @i @Funcdef.context@ = lookup_sym(@Funcdef.inherited@, sym_node(@id.name@), @id.name@, FAIL_IF_FOUND); 
-        @t dbg("Funcdef -> id (  ArgList ) Statlist end");
-        @i @StatList.inherited@ = append_end(@Funcdef.context@, @ArgList.ids@);
+       @i @FuncList.context@ = addChild(newTree("!root"), validate(@Funcdef.context@));
+    @}
+    | FuncList  Funcdef
+    @{ 
+        @i @FuncList.context@ = validate(addChild(@FuncList.1.context@, @Funcdef.context@));
+        
     @}
     ;
 
-
-ArgList:       /* empty */  @{ @i @ArgList.ids@ = empty_node(); @t dbg("Arglist -> empty"); @}
-    | id                    @{ @i @ArgList.ids@ = sym_node(@id.name@); @t dbg("Arglist -> id"); @}
-    | ArgList ',' id        @{ @i @ArgList.ids@ = append_end(@ArgList.1.ids@, sym_node(@id.name@)); dbg("Arglist -> Arglist id"); @}
+Funcdef: id '(' ArgList ')' StmtList TEND  ';'
+    @{ 
+        @i @Funcdef.context@ = addChildren(addChildren(@id.sym@, @ArgList.ids@), @StmtList.context@);
+    @}
     ;
 
-StatList:  Stat    
+ArgList:       /* empty */  @{ @i @ArgList.ids@ = single("!Meta"); @}
+    | id                    @{ @i @ArgList.ids@ = addChild(newTree("!Meta"), @id.sym@); @}
+    | ArgList ',' id        @{ @i @ArgList.ids@ = addChild(@ArgList.1.ids@, @id.sym@); @}
+    ;
+
+StmtList: Stmt 
     @{
-        @i @StatList.context@ = @Stat.context@; @t dbg("Statlist -> Stat");
-        @i @Stat.inherited@ = @StatList.inherited@;
+        @i @StmtList.context@ = addChild(metaNode(Statement), @Stmt.context@);
+        @i @Stmt.inherited@ = @StmtList.context@; 
     @}
-    |  StatList  Stat ';'
+    | StmtList Stmt
+    @{ 
+        @i @StmtList.context@ = addChild(@StmtList.1.context@, @Stmt.context@);
+        @i @Stmt.inherited@ = @StmtList.context@;
+        @i @StmtList.1.inherited@ = @StmtList.context@;  
+    @}
+    ; 
+
+Stmt: TVAR id assignment Expression    ';'     
+    @{ 
+        @i @Stmt.context@ = @id.sym@; 
+        @t checkSubtreeDeclared(@id.sym@, @Expression.ids@);
+    @}
+    | id assignment Expression          ';'
+    @{ 
+        @i @Stmt.context@ = addChild(metaNode(Assignment), @id.sym@); 
+        /*we add the id as a pseudo node this way it is actually in the tree and we can perform a lookup on traversal */ 
+        @t { checkDeclared(@id.sym@->parent, @id.sym@->var);   checkSubtreeDeclared(@id.sym@->parent, @Expression.ids@); } /* we look above the pseudo node, we also validate expression */
+    @}
+    | IfExprHead StmtList TEND ';'
     @{
-        @i @StatList.0.context@ = append_end(@StatList.1.context@, @Stat.context@);   /* // TODO replace empty node with Stat.context*/ 
-        @i @Stat.inherited@ = @StatList.1.context@; @t dbg("Statlist -> StatList Stat");
-        @i @StatList.1.inherited@ = @StatList.0.inherited@;
+        @i @Stmt.context@ = @StmtList.context@;
+        @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
     @}
-    ;
-
-Stat: 
-    TRETURN Expr    @{ @i @Stat.context@ = NULL; @}
-    | IfStat StatList TELSE StatList TEND
+    | IfExprHead StmtList TELSE StmtList TEND ';'
     @{
-        @i @Stat.context@ = @Stat.inherited@;       
-        @i @StatList.inherited@ = @Stat.inherited@;
-        @i @StatList.1.inherited@ = @Stat.inherited@;
+        @i @Stmt.context@ = addChild(addChild(metaNode(If), @StmtList.context@), @StmtList.1.context@);
+        @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
     @}
-    | IfStat StatList TEND
+    | LoopHead StmtList TEND ';'
     @{
-        @i @Stat.context@ = @Stat.inherited@;
-        @i @StatList.inherited@ =  @Stat.inherited@;
+        @i @Stmt.context@ = addChildren(loopNode(@LoopHead.sym@), @StmtList.context@);
     @}
-    | LoopHead StatList TEND
+    | TBREAK id ';'
     @{
-        @i @Stat.context@ = @Stat.inherited@;
-        @i @StatList.inherited@ =  @Stat.inherited@;
+        @i @Stmt.context@ = loopRefNode(@id.sym@);
+        /*we need to validate that id is actually a loop and that this statement is within the loop body*/
+        @t checkLooprefCorrect(@id.sym@); 
     @}
-    | TBREAK id     @{ @i @Stat.context@ = lookup_sym(@Stat.inherited@, sym_node(@id.name@), @id.name@, FAIL_IF_FOUND); @}
-    | TCONT id      @{ @i @Stat.context@ = NULL; @}  
-    | VarDef            
-    | VarAssignment 
-    | Expr          @{ @i @Stat.context@ = @Expr.ids@; @}
-    ;
-
-IfStat: TIF Expr TTHEN
-    ;
-
-LoopHead: id ':' TLOOP
-    ;
-
-VarDef: TVAR id assignment Expr 
+    | TCONT id ';'
     @{
-        @i @VarDef.context@ = define_var(@VarDef.inherited@, sym_node(@id.name@), @Expr.ids@); @t dbg("Vardef -> TVAR id assignment expr"); 
+        @i @Stmt.context@ = loopRefNode(@id.sym@);
+        @t checkLooprefCorrect(@id.sym@); 
+    @}
+    | MemAcess assignment Expression ';'
+    @{
+        @i @Stmt.context@ = metaNode(Assignment);
+        @t {checkSubtreeDeclared(@Stmt.context@, @MemAcess.ids@); checkSubtreeDeclared(@Stmt.context@, @Expression.ids@); }
+    @}
+    | Expression   ';'                     
+    @{ 
+        @i @Stmt.context@ = metaNode(ExpressionStatement); 
+        @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
+        /* all children of stmt must be declared before use */
+    @}
+    | TRETURN Expression ';'
+    @{
+        @i @Stmt.context@ = returnNode();
+        @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
     @}
     ;
 
-VarAssignment: id assignment Expr   @{ @i @VarAssignment.context@ = assign(@VarAssignment.inherited@, sym_node(@id.name@), @Expr.ids@); @}
-    | '*' Term assignment Expr      @{ @i @VarAssignment.context@ = assign(@VarAssignment.inherited@, @Term.ids@, @Expr.ids@); @}
+IfExprHead: TIF Expression TTHEN;
+LoopHead: id ':' TLOOP;
+BinaryOperator: '+' | lessThan | '#' | TAND | '*';
+Unary: TNOT | '-';
+
+PrefixTerm: 
+    Unary Term 
+    | Term
     ;
 
-
-
-    /* Either a term or a term and a prefix not having this causes shift/reduce conflicts */
-PrefixTerm:	
-        PrefixOp PrefixTerm
-		| '*' PrefixTerm    /* we need to handle this case explicitly or else we will have s/r conflicts */
-		| Term
-		;
-
-PrefixOp: '-'
-    | TNOT
-    ;
-
-BinOp: '+' 
-    | '*' 
-    | '#'
-    | lessThan
-    | TAND
-    ;
-
-Expr: 
+Expression:                                     
     PrefixTerm
-    | Expr BinOp Term
-    @{
-        @i @Expr.ids@ = append_end(@Expr.1.ids@, @Term.ids@); 
-    @}
+    | Expression BinaryOperator Term           @{ @i @Expression.ids@ = addChildrenMode(@Expression.1.ids@, @Term.ids@, FALSE); @}
     ;
 
-    /* list of expressions is either expr or {expr, [expr]} in EBNF */
-ExprList:   @{ @i @ExprList.ids@ = NULL; @} /* empty */ 
-    | Expr
-    | ExprList ',' Expr
-    @{
-        @i @ExprList.ids@ = append_end(@ExprList.1.ids@, @Expr.ids@);
-    @}
+CallArgs: 
+    Expression                @{ @i @CallArgs.ids@ = @Expression.ids@; @}
+    | CallArgs ',' Expression   @{ @i @CallArgs.ids@ = addChildrenMode(@CallArgs.1.ids@, @Expression.ids@, FALSE); @}
     ;
+
+
+MemAcess: '*' Term 
+    ;
+
+Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(addChild(newTree("!Call"), @id.sym@), @CallArgs.ids@, FALSE); @}
+    | id '(' ')'            @{ @i @Call.ids@ = addChild(newTree("!Call"), @id.sym@); @}
+    ;
+
 
 Term: 
-    '(' Expr ')'            @{ @i @Term.ids@ = @Expr.ids@; @}
-    | number                @{ @i @Term.ids@ = empty_node(); @}
-    | id                    @{ @i @Term.ids@ = sym_node(@id.name@); @}
-    | id '(' ExprList ')'   @{ @i @Term.ids@ = sym_node(@id.name@); @}
+    number                  @{ @i @Term.ids@ = single("!number node"); @}
+    | '(' Expression ')'  
+    | id                    @{ @i @Term.ids@ = addChild(newTree("!Factors"), @id.sym@); @}
+    | Call
     ;
+ 
 
 %%
 
@@ -178,5 +173,6 @@ void yyerror(char* s) {
 }
 int main() {
     yyparse();
+    printf(" *** Parsed programm *** \n");
     return 0;
 }

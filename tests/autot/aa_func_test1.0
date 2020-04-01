@@ -1,6 +1,6 @@
+
 f(a, b, c)
-var s := a;
-var e := b;
-var y := x;
-var d := c;
+    var x := a;
+    var d := b;
+    var s := x;
 end;
