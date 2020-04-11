@@ -13,7 +13,8 @@ enum MType {
     Assignment = 4,
     Loopref = 5,
     ExpressionStatement = 6,
-    Return = 7
+    Return = 7,
+    Funcdef = 8
 };
 
 typedef enum MType MetaType; 
@@ -41,6 +42,7 @@ SymbolTree* metaNode(MetaType type);
 SymbolTree* loopNode(SymbolTree* curnode);
 SymbolTree* loopRefNode(SymbolTree* var);
 SymbolTree* returnNode();
+SymbolTree* function(SymbolTree* var);
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child);
 // adds all children of parent of child to tree at the curent level
 SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs);

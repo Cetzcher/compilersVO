@@ -35,7 +35,8 @@
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
 %%
-Program: FuncList @{ @i @FuncList.inherited@ = @FuncList.context@; @t debugSymTree(@FuncList.context@, 0); @}
+Program: 
+    | FuncList @{ @i @FuncList.inherited@ = @FuncList.context@; @t debugSymTree(@FuncList.context@, 0); @}
     ;
 
 FuncList:
@@ -52,8 +53,9 @@ FuncList:
 
 Funcdef: id '(' ArgList ')' StmtList TEND  ';'
     @{ 
-        @i @Funcdef.context@ = addChildren(addChildren(@id.sym@, @ArgList.ids@), @StmtList.context@);
+        @i @Funcdef.context@ = addChildren(addChildren(function(@id.sym@), @ArgList.ids@), @StmtList.context@);
     @}
+    | id '(' ArgList ')'  TEND  ';' @{ @i @Funcdef.context@ = addChildren(function(@id.sym@), @ArgList.ids@); @}
     ;
 
 ArgList:       /* empty */  @{ @i @ArgList.ids@ = single("!Meta"); @}
@@ -152,8 +154,8 @@ CallArgs:
 MemAcess: '*' Term 
     ;
 
-Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(addChild(newTree("!Call"), @id.sym@), @CallArgs.ids@, FALSE); @}
-    | id '(' ')'            @{ @i @Call.ids@ = addChild(newTree("!Call"), @id.sym@); @}
+Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
+    | id '(' ')'            @{ @i @Call.ids@ = newTree("!Call"); @}
     ;
 
 

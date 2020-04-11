@@ -3,6 +3,21 @@
 #include <stdlib.h>
 
 #define DEBUG_SCOPE 1
+#define SEMANTIC_VALIDATE
+
+void criticalFailure(int exitCode, char* msg) {
+    #ifdef SEMANTIC_VALIDATE
+        printf(msg);
+        exit(exitCode);
+    #else
+        printf("this is a NO-OP");
+        printf(msg);
+    #endif
+}
+
+void criticalNoMSG(int exitCode) {
+    criticalFailure(exitCode, "error");
+}
 
 void inset(int margin) {
     for(int i = 0; i < margin; i++)
@@ -48,7 +63,7 @@ SymbolTree* metaNode(MetaType type) {
         return _create(1, type, "!Return");
     default:
         printf("meta type not found ... fatal \n");
-        exit(100);
+        criticalNoMSG(100);
     }
 }
 
@@ -93,6 +108,10 @@ SymbolTree* single2(variable var, int lineno) {
     return t;
 }
 
+SymbolTree* function(SymbolTree* sym) {
+    sym->type = Funcdef;
+    return sym;
+}
 
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
     // check if there is enough room in tree
@@ -102,7 +121,7 @@ SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
     }
     if(tree == NULL) {
         printf("Tree was null fatal ... \n");
-        exit(10);
+        criticalNoMSG(10);
     }
     if(tree->count < tree->size) {
         tree->children[tree->count] = child;
@@ -115,7 +134,7 @@ SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
         SymbolTree** expanded = realloc(tree->children, tmp_size);
         if(expanded == NULL) {
             printf("was not able to realloc, exiting ... \n");
-            exit(10);
+            criticalNoMSG(10);
         } else {
             tree->children = expanded;
             tree->size = tmp_size;
@@ -190,7 +209,7 @@ SymbolTree* validate(SymbolTree* tree) {
             variable cur = other->var;
             if(strcmp(needle, cur) == 0 && other->type == None && current->type == None) {
                 printf("%s was redeclared! \n", needle, cur);
-                exit(3);
+                criticalNoMSG(3);
             }
         }
     }
@@ -207,7 +226,7 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree) {
         if(!res) {
             // child[i] is not declared
             printf("Error: %s use before declartation @line:%d\n", current->var, current->line);
-            exit(3);
+            criticalNoMSG(3);
         }
         // we perform a lookup for each node in the subtree but we only check the level below the root node
     }
@@ -219,7 +238,7 @@ void checkDeclared(SymbolTree* tree, variable var) {
     if(!res) {
         // child[i] is not declared
         printf("Error: %s use before declartation\n", var);
-        exit(3);
+        criticalNoMSG(3);
     } 
 }
 
@@ -234,5 +253,5 @@ void checkLooprefCorrect(SymbolTree* node) {
     }
     // we have not found what we are looking for so we throw a semantic error
     printf("%s is not within a loop of %s @line:%d", lookingfor, lookingfor, lineno);
-    exit(3);
+    criticalNoMSG(3);
 }
