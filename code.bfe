@@ -12,15 +12,24 @@
 %}
 
 %start expr
-%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10
+%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11
 %%
 
 expr: const                     # 0 #   printf("\tMOVQ $%d, %%rax\n", bnode->value);
+expr: varexpr                   # 0 #   printf("\tMOVQ %%rsi, %%rax\n");
 
 const: OP_NUM                   # 0 # 
-const: OP_PLUS(const, const)    # 0 #  bnode->value = L(bnode)->value + R(bnode)->value; 
-const: OP_MINUS(const)          # 0 #   
+const: OP_PLUS(const, const)    # 0 #   bnode->value = L(bnode)->value + R(bnode)->value; 
+const: OP_MINUS(const)          # 0 #   bnode->value = -(L(bnode)->value);
 const: OP_MULT(const, const)    # 0 #   bnode->value = L(bnode)->value * R(bnode)->value;
+const: OP_AND(const, const)     # 0 #   bnode->value = L(bnode)->value & R(bnode)->value;
+const: OP_NOT(const)            # 0 #   bnode->value = ~(L(bnode)->value);
+const: OP_LTEQ(const, const)    # 0 #   bnode->value = (L(bnode)->value <= R(bnode)->value) ? -1 : 0; 
+const: OP_HASH(const, const)    # 0 #   bnode->value = (L(bnode)->value != R(bnode)->value) ? -1 : 0;
+
+
+varexpr: OP_PLUS(OP_VAR, OP_VAR) # 1 # add(L(bnode), R(bnode));
+
 %%
 
 

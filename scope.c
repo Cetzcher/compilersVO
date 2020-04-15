@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_SCOPE 1
+#define DEBUG_SCOPE 0
 #define SEMANTIC_VALIDATE
 
 void criticalFailure(int exitCode, char* msg) {
@@ -41,6 +41,7 @@ SymbolTree* _create(int size, MetaType type, variable var) {
     tree->value = 0;
     tree->parameters = 0;
     tree->declaredVars = 0;
+    tree->link = NULL;
     for(int i = 0; i < tree->size; i++)
         tree->children[i] = NULL;
     return tree;
@@ -258,28 +259,30 @@ SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, bool
     return tree;
 }
 
-// looks for var in the tree above and to the left i.e occouring before the node of tree
-// true if found, false otherwis
-boolean lookup_node(SymbolTree* tree, variable var) {
-    if(var == NULL)
-        return TRUE;
+SymbolTree* lookupInternal(SymbolTree* tree, variable var) {
     // we go up one level and look to the left first, then recusivly go up until parent = NULL
     if(tree->parent == NULL) {
         //printf("%s has not been declared\n", var);
         //exit(3);
-        return FALSE;
+        return NULL;
     } else {
         if(strcmp(var, tree->parent->var) == 0)
-            return TRUE; // parent is node we are looking for
+            return tree->parent; // parent is node we are looking for
     }
     for(int i = 0; i < tree->childIndex; i++) {
         variable cur = tree->parent->children[i]->var;
         if(strcmp(cur, var) == 0) {
-            return TRUE;     // we have found the node so we stop looking for it.
+            return tree->parent->children[i];     // we have found the node so we stop looking for it.
         }
     }
-    return lookup_node(tree->parent, var);
+    return lookupInternal(tree->parent, var);
 }
+// looks for var in the tree above and to the left i.e occouring before the node of tree
+// true if found, false otherwis
+boolean lookup_node(SymbolTree* tree, variable var) {
+    return lookupInternal(tree, var) != NULL;
+}
+
 // validates the current level to check if any variable is declared twice
 // retruns the tree if successful or exit(3) otherwise 
 SymbolTree* validate(SymbolTree* tree) {
@@ -307,11 +310,16 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree) {
     // we could optimize here
     for(int i = 0; i < subtree->count; i++) {
         SymbolTree* current = subtree->children[i];
-        boolean res = lookup_node(tree, current->var);
-        if(!res) {
+        if(current->var == NULL)
+            continue;
+        SymbolTree* res = lookupInternal(tree, current->var);
+        if(res == NULL) {
             // child[i] is not declared
             printf("Error: %s use before declartation @line:%d\n", current->var, current->line);
             criticalNoMSG(3);
+        } else {
+            // we have found the declaration so we link them together
+            current->link = res;
         }
         // we perform a lookup for each node in the subtree but we only check the level below the root node
     }
@@ -319,6 +327,8 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree) {
 }
 
 void checkDeclared(SymbolTree* tree, variable var) {
+    if(var == NULL)
+            return;
     boolean res = lookup_node(tree, var);
     if(!res) {
         // child[i] is not declared

@@ -1,4 +1,4 @@
 f(arg1, arg2)
-    return 1 + 2 * 5 + 3;
+    return arg1 + arg2 ;
 end;
 

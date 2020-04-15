@@ -32,7 +32,7 @@
 @autosyn sym
 
 @attributes {long value; } number
-@attributes {short op; } BinaryOperator
+@attributes {short op; } BinaryOperator Unary
 @attributes { SymbolTree* sym;} id LoopHead CallStart
 @attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
@@ -138,7 +138,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
-        @codegen { /*debugSymTree(@Expression.ids@, 0);*/ burm_label(@Expression.ids@); burm_reduce(@Expression.ids@, 1); generate_return(); }
+        @codegen { debugSymTree(@Expression.ids@, 0); burm_label(@Expression.ids@); burm_reduce(@Expression.ids@, 1); generate_return(); }
     @}
     ;
 
@@ -152,10 +152,13 @@ BinaryOperator:
     | '*'           @{ @i @BinaryOperator.op@ = OP_MULT; @}
     ;
 
-Unary: TNOT | '-';
+Unary: 
+    TNOT    @{ @i @Unary.op@ = OP_NOT; @} 
+    | '-'   @{ @i @Unary.op@ = OP_MINUS; @}
+    ;
 
 PrefixTerm: 
-    Unary Term 
+    Unary Term                              @{ @i @PrefixTerm.ids@ = exprnode(@Term.ids@, @Unary.op@, NULL); @} 
     | Term
     ;
 

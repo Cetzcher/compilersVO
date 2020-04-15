@@ -26,7 +26,7 @@ typedef enum MType MetaType;
 typedef struct burm_state *STATEPTR_TYPE; 
 
 typedef struct SymbolTree {
-
+    struct SymbolTree *link;
     struct SymbolTree *parent;
     struct SymbolTree** children;
     unsigned short size;        // size of children allocated
