@@ -2,7 +2,8 @@ funclang:
 	ox parser.y scanner.flex
 	yacc -d -v -t oxout.y
 	flex oxout.l
-	gcc -g scope.c lex.yy.c y.tab.c -w   -lm -o parser
+	bfe < code.bfe | iburg > code.c
+	gcc -g scope.c code.c instructions.c lex.yy.c y.tab.c -w   -lm -o parser
 
 clean:
 	rm oxout.*

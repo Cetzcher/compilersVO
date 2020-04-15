@@ -35,6 +35,11 @@ SymbolTree* _create(int size, MetaType type, variable var) {
     tree->parent = NULL;
     tree->type = type;
     tree->children = malloc(sizeof(SymbolTree) * tree->size);
+    tree->op = 0;
+    tree->memref = 0;
+    tree->value = 0;
+    tree->parameters = 0;
+    tree->declaredVars = 0;
     for(int i = 0; i < tree->size; i++)
         tree->children[i] = NULL;
     return tree;
@@ -97,7 +102,7 @@ SymbolTree* newTree2(variable var, int lineno) {
 }
 
 SymbolTree* single(variable var) {
-    SymbolTree* tree = _create(1, None, var);
+    SymbolTree* tree = _create(2, None, var);
     //printf("Single created @%p : %s\n", tree, var);
     return tree;
 }
@@ -108,9 +113,51 @@ SymbolTree* single2(variable var, int lineno) {
     return t;
 }
 
-SymbolTree* function(SymbolTree* sym) {
-    sym->type = Funcdef;
-    return sym;
+
+// addChildren(addChildren(function(@id.sym@), @ArgList.ids@), @StmtList.context@)
+SymbolTree* func(SymbolTree* name, SymbolTree* params, SymbolTree* body) {
+    name->type = Funcdef;
+    name->parameters = params->parameters;
+    SymbolTree* funcParams = addChildren(name, params);
+    if(body != NULL) {
+        funcParams->declaredVars = body->declaredVars;  // pass the declared varaiables up
+        return addChildren(funcParams, body);
+    }
+    return funcParams;
+}
+
+SymbolTree* param(SymbolTree* before, SymbolTree* cur) {
+    if(before == NULL) {
+        if(cur == NULL) {
+            return single("!meta");
+        }
+        cur->parameters = 1;
+        cur->memref = 1;
+        SymbolTree* parent = single("!meta");
+        parent->parameters = cur->parameters;
+        parent->memref = cur->memref;
+        return addChild(parent, cur);  // create a parent and return that instead
+    } 
+    // before will now be the parent elem
+    cur->parameters = ++before->parameters;
+    cur->memref = ++before->memref;
+    return addChild(before, cur);   // add this as a child
+}
+
+SymbolTree* decl(SymbolTree* node) {
+    node->declaredVars = 1;
+    return node;
+}
+
+SymbolTree* statements(SymbolTree* lhs, SymbolTree* rhs) {
+    if(rhs == NULL) {
+         SymbolTree* par = addChild(metaNode(Statement), lhs);
+         par->declaredVars = lhs->declaredVars;
+         return par;
+    }
+    addChild(lhs, rhs);
+    lhs->declaredVars += rhs->declaredVars;
+    return lhs;
 }
 
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
@@ -130,8 +177,8 @@ SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
         child->parent = tree;
     } else {
         // we must now realloc 
-        const int tmp_size = tree->size * 2;
-        SymbolTree** expanded = realloc(tree->children, tmp_size);
+        const int tmp_size = tree->size + TREE_SIZE_DEFAULT;
+        SymbolTree** expanded = realloc(tree->children, sizeof(SymbolTree*) * tmp_size);
         if(expanded == NULL) {
             printf("was not able to realloc, exiting ... \n");
             criticalNoMSG(10);
@@ -154,9 +201,13 @@ void debugSymTree(SymbolTree* tree, int depth) {
     if(!DEBUG_SCOPE)
         return;
     inset(depth);
-    printf("--%s[%d], line %d", tree->var, tree->childIndex, tree->line);
+    printf("--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
     if(tree->type == Loop)
         printf(" (LOOP) ");
+    else if(tree->type == Funcdef)
+        printf("Funcdef (parmcount: %d)", tree->parameters);
+    else
+        printf("declared vars: %d", tree->declaredVars);
     printf("\n");
     for(int i = 0; i < tree->count; i++) {
         debugSymTree(tree->children[i], depth + 1);
@@ -255,3 +306,5 @@ void checkLooprefCorrect(SymbolTree* node) {
     printf("%s is not within a loop of %s @line:%d", lookingfor, lookingfor, lineno);
     criticalNoMSG(3);
 }
+
+

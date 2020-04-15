@@ -4,6 +4,7 @@
     int yylex(void);
     void yyerror(char* );
     #include "scope.h"
+    #include "instructions.h"
     //yydebug = 1;
 %}
 
@@ -34,9 +35,16 @@
 @attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
+@traversal @preorder codegen
+
 %%
 Program: 
-    | FuncList @{ @i @FuncList.inherited@ = @FuncList.context@; @t debugSymTree(@FuncList.context@, 0); @}
+    | FuncList 
+    @{ 
+        @i @FuncList.inherited@ = @FuncList.context@; 
+        @t debugSymTree(@FuncList.context@, 0); 
+        @codegen init_codegen(@FuncList.context@);
+    @}
     ;
 
 FuncList:
@@ -51,26 +59,27 @@ FuncList:
     @}
     ;
 
-Funcdef: id '(' ArgList ')' StmtList TEND  ';'
+Funcdef: id '(' ArgList ')' StmtList TEND  ';'  
     @{ 
-        @i @Funcdef.context@ = addChildren(addChildren(function(@id.sym@), @ArgList.ids@), @StmtList.context@);
+        @i @Funcdef.context@ = func(@id.sym@, @ArgList.ids@, @StmtList.context@); 
+        @codegen declare_func(@Funcdef.context@);
     @}
-    | id '(' ArgList ')'  TEND  ';' @{ @i @Funcdef.context@ = addChildren(function(@id.sym@), @ArgList.ids@); @}
+    | id '(' ArgList ')'  TEND  ';'             @{ @i @Funcdef.context@ = func(@id.sym@, @ArgList.ids@, NULL); @}
     ;
 
-ArgList:       /* empty */  @{ @i @ArgList.ids@ = single("!Meta"); @}
-    | id                    @{ @i @ArgList.ids@ = addChild(newTree("!Meta"), @id.sym@); @}
-    | ArgList ',' id        @{ @i @ArgList.ids@ = addChild(@ArgList.1.ids@, @id.sym@); @}
+ArgList:       /* empty */                      @{ @i @ArgList.ids@ = param(NULL, NULL); @}
+    | id                                        @{ @i @ArgList.ids@ = param(NULL, @id.sym@); @}
+    | ArgList ',' id                            @{ @i @ArgList.ids@ = param(@ArgList.1.ids@, @id.sym@); @}
     ;
 
 StmtList: Stmt 
     @{
-        @i @StmtList.context@ = addChild(metaNode(Statement), @Stmt.context@);
+        @i @StmtList.context@ = statements(@Stmt.context@, NULL);
         @i @Stmt.inherited@ = @StmtList.context@; 
     @}
     | StmtList Stmt
     @{ 
-        @i @StmtList.context@ = addChild(@StmtList.1.context@, @Stmt.context@);
+        @i @StmtList.context@ = statements(@StmtList.1.context@, @Stmt.context@);
         @i @Stmt.inherited@ = @StmtList.context@;
         @i @StmtList.1.inherited@ = @StmtList.context@;  
     @}
@@ -78,7 +87,7 @@ StmtList: Stmt
 
 Stmt: TVAR id assignment Expression    ';'     
     @{ 
-        @i @Stmt.context@ = @id.sym@; 
+        @i @Stmt.context@ = decl(@id.sym@); 
         @t checkSubtreeDeclared(@id.sym@, @Expression.ids@);
     @}
     | id assignment Expression          ';'
@@ -127,6 +136,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
+        @codegen generate_return();
     @}
     ;
 

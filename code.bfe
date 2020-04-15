@@ -1,0 +1,23 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#define STATE_TYPE void*
+#include "scope.h"
+#include "instructions.h"
+%}
+
+%start expr
+%term  OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_Mult = 7 OP_HASH = 8 OP_LTEQ = 9
+
+%%
+
+expr: const                     # 0 #   
+
+const: OP_NUM                   # 0 # 
+const: OP_PLUS(const, const)    # 0 #
+const: OP_MINUS(const)          # 0 #
+const: OP_Mult(const, const)    # 0 #
+%%
+
+

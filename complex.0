@@ -1,0 +1,21 @@
+f(arg1, arg2)
+    var a := 1;
+    var b := 2;
+    var c := 3;
+    var d := (a + b) * c;
+    c := 24;
+    return arg1 + arg2;
+end;
+
+g(s)
+    var a := 1;
+    return s;
+end;
+
+m()
+    1;
+end;
+
+h(a, b, c, d, e, f)
+    return a + b + c + d + e + f + 1 + 2 + 3 + 4;
+end;
