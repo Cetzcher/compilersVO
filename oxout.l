@@ -22,16 +22,24 @@ ID          [a-zA-Z_][a-zA-Z0-9_]*
 %{
 
 
-struct yyyT1 { SymbolTree* sym;}; 
+struct yyyT1 {long value; }; 
 typedef struct yyyT1 *yyyP1; 
 
 
-struct yyyT2 {SymbolTree* ids;}; 
+struct yyyT2 {short op; }; 
 typedef struct yyyT2 *yyyP2; 
 
 
-struct yyyT3 { SymbolTree* context; SymbolTree* inherited; }; 
+struct yyyT3 { SymbolTree* sym;}; 
 typedef struct yyyT3 *yyyP3; 
+
+
+struct yyyT4 {SymbolTree* ids;}; 
+typedef struct yyyT4 *yyyP4; 
+
+
+struct yyyT5 { SymbolTree* context; SymbolTree* inherited; }; 
+typedef struct yyyT5 *yyyP5; 
                                                       /*custom*/  
 typedef unsigned char yyyWAT; 
 typedef unsigned char yyyRCT; 
@@ -88,22 +96,20 @@ cont                                                { {yyyGenLeaf(0,0,yyyLRCIL+0
 var                                                 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TVAR;} }
 not                                                 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TNOT;} }
 and                                                 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TAND;} }
-{HEXPREFIX}{HEXDIGIT}+                              { /*printf("num %s\n", yytext);    */ 
-                                                        printf("converted: %d", convertHex(yytext)); 
-                                                        {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return number;}}
-{DIGIT}+                                            {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return number;} 
-{ID}                                                {yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1); (((yyyP1)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
-"("                                                 { /*printf("lparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '(';}}
-")"                                                 { /*printf("rparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ')';}}
-","                                                 { /*printf("comma\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ',';}}
-";"                                                 { /*printf("semicolon\n");         */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ';';}}
-":"                                                 { /*printf("colon\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ':';}}
-":="                                                { /*printf("assignment\n");        */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return assignment;}}
-"*"                                                 { /*printf("times\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '*';}}
-"-"                                                 { /*printf("minus\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '-';}}
-"+"                                                 { /*printf("plus\n");              */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '+';}}
-"<="                                                { /*printf("smallerThan\n");       */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return lessThan;}}
-"#"                                                 { /*printf("#\n");                 */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '#';} }
+{HEXPREFIX}{HEXDIGIT}+                              {yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1);(((yyyP1)(yyyTermBuffer.snBufPtr))->value) = convertHex(yytext); return number;} 
+{DIGIT}+                                            {yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1);(((yyyP1)(yyyTermBuffer.snBufPtr))->value) = atoi(yytext); return number;} 
+{ID}                                                {yyyGenLeaf(1,3,yyyLRCIL+1,yyyLRCIL+2); (((yyyP3)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
+"("                                                 { /*printf("lparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '(';}}
+")"                                                 { /*printf("rparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ')';}}
+","                                                 { /*printf("comma\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ',';}}
+";"                                                 { /*printf("semicolon\n");         */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ';';}}
+":"                                                 { /*printf("colon\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ':';}}
+":="                                                { /*printf("assignment\n");        */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return assignment;}}
+"*"                                                 { /*printf("times\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '*';}}
+"-"                                                 { /*printf("minus\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '-';}}
+"+"                                                 { /*printf("plus\n");              */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '+';}}
+"<="                                                { /*printf("smallerThan\n");       */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return lessThan;}}
+"#"                                                 { /*printf("#\n");                 */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '#';} }
 "//".*                                              /* eat up comments */
 [ \t\r]*                                            /* eat up whitespace characters*/
 \n                                                  { line_number++; }

@@ -527,16 +527,24 @@ int convertHex(char*);
 #line 23 "oxout.l"
 
 
-struct yyyT1 { SymbolTree* sym;}; 
+struct yyyT1 {long value; }; 
 typedef struct yyyT1 *yyyP1; 
 
 
-struct yyyT2 {SymbolTree* ids;}; 
+struct yyyT2 {short op; }; 
 typedef struct yyyT2 *yyyP2; 
 
 
-struct yyyT3 { SymbolTree* context; SymbolTree* inherited; }; 
+struct yyyT3 { SymbolTree* sym;}; 
 typedef struct yyyT3 *yyyP3; 
+
+
+struct yyyT4 {SymbolTree* ids;}; 
+typedef struct yyyT4 *yyyP4; 
+
+
+struct yyyT5 { SymbolTree* context; SymbolTree* inherited; }; 
+typedef struct yyyT5 *yyyP5; 
                                                       /*custom*/  
 typedef unsigned char yyyWAT; 
 typedef unsigned char yyyRCT; 
@@ -580,8 +588,8 @@ extern yyyWAT yyyLRCIL[];
 extern void yyyGenLeaf(); 
 
 
-#line 584 "lex.yy.c"
-#line 585 "lex.yy.c"
+#line 592 "lex.yy.c"
+#line 593 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -798,9 +806,9 @@ YY_DECL
 		}
 
 	{
-#line 79 "oxout.l"
+#line 87 "oxout.l"
 
-#line 804 "lex.yy.c"
+#line 812 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -869,158 +877,156 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 80 "oxout.l"
+#line 88 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TIF;} }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 81 "oxout.l"
+#line 89 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TTHEN;}}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 82 "oxout.l"
+#line 90 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TELSE;} }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 83 "oxout.l"
+#line 91 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TEND;} }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 84 "oxout.l"
+#line 92 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TRETURN;} }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 85 "oxout.l"
+#line 93 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TLOOP;} }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 86 "oxout.l"
+#line 94 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TBREAK;} }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 87 "oxout.l"
+#line 95 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TCONT;} }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 88 "oxout.l"
+#line 96 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TVAR;} }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 89 "oxout.l"
+#line 97 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TNOT;} }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 90 "oxout.l"
+#line 98 "oxout.l"
 { {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return TAND;} }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 91 "oxout.l"
-{ /*printf("num %s\n", yytext);    */ 
-                                                        printf("converted: %d", convertHex(yytext)); 
-                                                        {yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return number;}}
+#line 99 "oxout.l"
+{yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1);(((yyyP1)(yyyTermBuffer.snBufPtr))->value) = convertHex(yytext); return number;} 
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 94 "oxout.l"
-{yyyGenLeaf(0,0,yyyLRCIL+0,yyyLRCIL+0);return number;} 
+#line 100 "oxout.l"
+{yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1);(((yyyP1)(yyyTermBuffer.snBufPtr))->value) = atoi(yytext); return number;} 
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 95 "oxout.l"
-{yyyGenLeaf(1,1,yyyLRCIL+0,yyyLRCIL+1); (((yyyP1)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
+#line 101 "oxout.l"
+{yyyGenLeaf(1,3,yyyLRCIL+1,yyyLRCIL+2); (((yyyP3)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 96 "oxout.l"
-{ /*printf("lparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '(';}}
+#line 102 "oxout.l"
+{ /*printf("lparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '(';}}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 97 "oxout.l"
-{ /*printf("rparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ')';}}
+#line 103 "oxout.l"
+{ /*printf("rparen\n");            */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ')';}}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 98 "oxout.l"
-{ /*printf("comma\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ',';}}
+#line 104 "oxout.l"
+{ /*printf("comma\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ',';}}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 99 "oxout.l"
-{ /*printf("semicolon\n");         */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ';';}}
+#line 105 "oxout.l"
+{ /*printf("semicolon\n");         */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ';';}}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 100 "oxout.l"
-{ /*printf("colon\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return ':';}}
+#line 106 "oxout.l"
+{ /*printf("colon\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return ':';}}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 101 "oxout.l"
-{ /*printf("assignment\n");        */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return assignment;}}
+#line 107 "oxout.l"
+{ /*printf("assignment\n");        */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return assignment;}}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 102 "oxout.l"
-{ /*printf("times\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '*';}}
+#line 108 "oxout.l"
+{ /*printf("times\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '*';}}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 103 "oxout.l"
-{ /*printf("minus\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '-';}}
+#line 109 "oxout.l"
+{ /*printf("minus\n");             */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '-';}}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 104 "oxout.l"
-{ /*printf("plus\n");              */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '+';}}
+#line 110 "oxout.l"
+{ /*printf("plus\n");              */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '+';}}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 105 "oxout.l"
-{ /*printf("smallerThan\n");       */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return lessThan;}}
+#line 111 "oxout.l"
+{ /*printf("smallerThan\n");       */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return lessThan;}}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 106 "oxout.l"
-{ /*printf("#\n");                 */ {yyyGenLeaf(0,0,yyyLRCIL+1,yyyLRCIL+1);return '#';} }
+#line 112 "oxout.l"
+{ /*printf("#\n");                 */ {yyyGenLeaf(0,0,yyyLRCIL+2,yyyLRCIL+2);return '#';} }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 107 "oxout.l"
+#line 113 "oxout.l"
 /* eat up comments */
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 108 "oxout.l"
+#line 114 "oxout.l"
 /* eat up whitespace characters*/
 	YY_BREAK
 case 28:
 /* rule 28 can match eol */
 YY_RULE_SETUP
-#line 109 "oxout.l"
+#line 115 "oxout.l"
 { line_number++; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 110 "oxout.l"
+#line 116 "oxout.l"
 { printf("lexical error near line %d\n", line_number); exit(1); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 111 "oxout.l"
+#line 117 "oxout.l"
 ECHO;
 	YY_BREAK
-#line 1024 "lex.yy.c"
+#line 1030 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2037,7 +2043,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 111 "oxout.l"
+#line 117 "oxout.l"
 
   
  /* User code section*/

@@ -1,4 +1,5 @@
 #include "scope.h"
+#include "instructions.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -10,13 +11,13 @@ void criticalFailure(int exitCode, char* msg) {
         printf(msg);
         exit(exitCode);
     #else
-        printf("this is a NO-OP");
+        printf("this is a NO-OP ");
         printf(msg);
     #endif
 }
 
 void criticalNoMSG(int exitCode) {
-    criticalFailure(exitCode, "error");
+    criticalFailure(exitCode, "error\n");
 }
 
 void inset(int margin) {
@@ -160,6 +161,27 @@ SymbolTree* statements(SymbolTree* lhs, SymbolTree* rhs) {
     return lhs;
 }
 
+SymbolTree* num(long val) {
+    SymbolTree* node = _create(2, None, NULL);
+    node->op = OP_NUM;
+    node->value = val;
+    return node;
+}
+
+SymbolTree* ID(SymbolTree* sym) {
+    sym->op = OP_VAR;
+    return sym;
+}
+
+SymbolTree* exprnode(SymbolTree* left, int op, SymbolTree* right) {
+    SymbolTree* parent = _create(2, OpNode, NULL);
+    parent->op = op;
+    addChild(parent, left);
+    if(right != NULL)
+        addChild(parent, right);
+    return parent;
+}
+
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
     // check if there is enough room in tree
     if(child == NULL) {
@@ -201,11 +223,21 @@ void debugSymTree(SymbolTree* tree, int depth) {
     if(!DEBUG_SCOPE)
         return;
     inset(depth);
-    printf("--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
+    if(tree->var)
+        printf("--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
+    else
+        printf("--no name  ");
+
     if(tree->type == Loop)
         printf(" (LOOP) ");
     else if(tree->type == Funcdef)
         printf("Funcdef (parmcount: %d)", tree->parameters);
+    else if(tree->op == OP_NUM)
+        printf("NUM <%d>", tree->value);
+    else if (tree->type == OpNode)
+        printf("Operator (%d)", tree->op);
+    else if (tree->op == OP_VAR)
+        printf("var");
     else
         printf("declared vars: %d", tree->declaredVars);
     printf("\n");
@@ -229,6 +261,8 @@ SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, bool
 // looks for var in the tree above and to the left i.e occouring before the node of tree
 // true if found, false otherwis
 boolean lookup_node(SymbolTree* tree, variable var) {
+    if(var == NULL)
+        return TRUE;
     // we go up one level and look to the left first, then recusivly go up until parent = NULL
     if(tree->parent == NULL) {
         //printf("%s has not been declared\n", var);

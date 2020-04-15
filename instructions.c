@@ -34,10 +34,10 @@ void declare_func(SymbolTree* function) {
     printf("\tMOVQ %s, %s \t# set frame pointer\n", stackpointer, basepointer);
     // make room for local variables
     if(reservedSpace)
-        printf("\tSUBQ $%d %s \t\t# reserve space for %d vars\n", (reservedSpace) * 8, stackpointer, reservedSpace);
+        printf("\tSUBQ $%d, %s \t\t# reserve space for %d vars\n", (reservedSpace) * 8, stackpointer, reservedSpace);
     // move params onto stack
     for(int i = 0; i < function->parameters; i++) {
-        printf("\tMOVQ %s, -%d(%s)\n", argumentRegister[i], 8 * (i + 1), basepointer);
+        printf("\tMOVQ %%%s, -%d(%s)\n", argumentRegister[i], 8 * (i + 1), basepointer);
     }
     printf("\n");
 }

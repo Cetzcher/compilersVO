@@ -18,7 +18,8 @@ enum MType {
     ExpressionStatement = 6,
     Return = 7,
     Funcdef = 8,
-    Param = 9
+    Param = 9,
+    OpNode = 10
 };
 
 typedef enum MType MetaType; 
@@ -67,7 +68,10 @@ SymbolTree* func(SymbolTree* name, SymbolTree* params, SymbolTree* body);
 SymbolTree* param(SymbolTree* before, SymbolTree* cur);
 SymbolTree* decl(SymbolTree* node);
 SymbolTree* statements(SymbolTree* stmts, SymbolTree* stmt);
+SymbolTree* num(long val);
+SymbolTree* ID(SymbolTree* sym);
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child);
+SymbolTree* exprnode(SymbolTree* left, int op, SymbolTree* right);
 // adds all children of parent of child to tree at the curent level
 SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs);
 SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, boolean validate_tree);

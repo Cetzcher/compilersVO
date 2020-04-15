@@ -29,10 +29,8 @@ cont                                                { return TCONT; }
 var                                                 { return TVAR; }
 not                                                 { return TNOT; }
 and                                                 { return TAND; }
-{HEXPREFIX}{HEXDIGIT}+                              { /*printf("num %s\n", yytext);    */ 
-                                                        printf("converted: %d", convertHex(yytext)); 
-                                                        return number;}
-{DIGIT}+                                            return number; 
+{HEXPREFIX}{HEXDIGIT}+                              return number; @{@number.value@ = convertHex(yytext); @}
+{DIGIT}+                                            return number; @{@number.value@ = atoi(yytext); @}
 {ID}                                                return id; @{ @id.sym@ = single2(strdup(yytext), yylineno);@}
 "("                                                 { /*printf("lparen\n");            */ return '(';}
 ")"                                                 { /*printf("rparen\n");            */ return ')';}

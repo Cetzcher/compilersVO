@@ -4,6 +4,10 @@
 #define STATE_TYPE void*
 #include "scope.h"
 #include "instructions.h"
+
+#define L(p)   	((p)->children[0])
+#define R(p)    ((p)->children[1])
+
 #include <limits.h>
 #include <stdlib.h>
 #ifndef STATE_TYPE
@@ -26,30 +30,35 @@ struct burm_state {
 	short cost[3];
 	struct {
 		unsigned burm_expr:1;
-		unsigned burm_const:1;
+		unsigned burm_const:3;
 	} rule;
 };
 
 static short burm_nts_0[] = { burm_const_NT, 0 };
 static short burm_nts_1[] = { 0 };
+static short burm_nts_2[] = { burm_const_NT, burm_const_NT, 0 };
 
 short *burm_nts[] = {
 	0,	/* 0 */
 	burm_nts_0,	/* 1 */
 	burm_nts_1,	/* 2 */
+	burm_nts_2,	/* 3 */
+	burm_nts_0,	/* 4 */
+	burm_nts_2,	/* 5 */
 };
 
 char burm_arity[] = {
 	0,	/* 0=OP_NOP */
-	0,	/* 1=OP_PLUS */
-	0,	/* 2=OP_MINUS */
+	2,	/* 1=OP_PLUS */
+	1,	/* 2=OP_MINUS */
 	0,	/* 3=OP_NUM */
 	0,	/* 4=OP_VAR */
 	0,	/* 5=OP_ZERO */
 	0,	/* 6=OP_ONE */
-	0,	/* 7=OP_Mult */
+	2,	/* 7=OP_MULT */
 	0,	/* 8=OP_HASH */
 	0,	/* 9=OP_LTEQ */
+	0,	/* 10=OP_AND */
 };
 
 static short burm_decode_expr[] = {
@@ -60,6 +69,9 @@ static short burm_decode_expr[] = {
 static short burm_decode_const[] = {
 	0,
 	2,
+	3,
+	4,
+	5,
 };
 
 int burm_rule(STATE_TYPE state, int goalnt) {
@@ -116,31 +128,27 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 			return (STATE_TYPE)&z;
 		}
 	case 1: /* OP_PLUS */
-		{
-			static struct burm_state z = { 1, 0, 0,
-				{	0,
-					32767,
-					32767,
-				},{
-					0,
-					0,
-				}
-			};
-			return (STATE_TYPE)&z;
+		assert(l && r);
+		{	/* const: OP_PLUS(const,const) */
+			c = l->cost[burm_const_NT] + r->cost[burm_const_NT] + 0;
+			if (c + 0 < p->cost[burm_const_NT]) {
+				p->cost[burm_const_NT] = c + 0;
+				p->rule.burm_const = 2;
+				burm_closure_const(p, c + 0);
+			}
 		}
+		break;
 	case 2: /* OP_MINUS */
-		{
-			static struct burm_state z = { 2, 0, 0,
-				{	0,
-					32767,
-					32767,
-				},{
-					0,
-					0,
-				}
-			};
-			return (STATE_TYPE)&z;
+		assert(l);
+		{	/* const: OP_MINUS(const) */
+			c = l->cost[burm_const_NT] + 0;
+			if (c + 0 < p->cost[burm_const_NT]) {
+				p->cost[burm_const_NT] = c + 0;
+				p->rule.burm_const = 3;
+				burm_closure_const(p, c + 0);
+			}
 		}
+		break;
 	case 3: /* OP_NUM */
 		{
 			static struct burm_state z = { 3, 0, 0,
@@ -193,19 +201,17 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 			};
 			return (STATE_TYPE)&z;
 		}
-	case 7: /* OP_Mult */
-		{
-			static struct burm_state z = { 7, 0, 0,
-				{	0,
-					32767,
-					32767,
-				},{
-					0,
-					0,
-				}
-			};
-			return (STATE_TYPE)&z;
+	case 7: /* OP_MULT */
+		assert(l && r);
+		{	/* const: OP_MULT(const,const) */
+			c = l->cost[burm_const_NT] + r->cost[burm_const_NT] + 0;
+			if (c + 0 < p->cost[burm_const_NT]) {
+				p->cost[burm_const_NT] = c + 0;
+				p->rule.burm_const = 4;
+				burm_closure_const(p, c + 0);
+			}
 		}
+		break;
 	case 8: /* OP_HASH */
 		{
 			static struct burm_state z = { 8, 0, 0,
@@ -222,6 +228,19 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 	case 9: /* OP_LTEQ */
 		{
 			static struct burm_state z = { 9, 0, 0,
+				{	0,
+					32767,
+					32767,
+				},{
+					0,
+					0,
+				}
+			};
+			return (STATE_TYPE)&z;
+		}
+	case 10: /* OP_AND */
+		{
+			static struct burm_state z = { 10, 0, 0,
 				{	0,
 					32767,
 					32767,
@@ -274,6 +293,14 @@ NODEPTR_TYPE *burm_kids(NODEPTR_TYPE p, int eruleno, NODEPTR_TYPE kids[]) {
 		break;
 	case 2: /* const: OP_NUM */
 		break;
+	case 5: /* const: OP_MULT(const,const) */
+	case 3: /* const: OP_PLUS(const,const) */
+		kids[0] = LEFT_CHILD(p);
+		kids[1] = RIGHT_CHILD(p);
+		break;
+	case 4: /* const: OP_MINUS(const) */
+		kids[0] = LEFT_CHILD(p);
+		break;
 	default:
 		burm_assert(0, PANIC("Bad external rule number %d in burm_kids\n", eruleno));
 	}
@@ -324,10 +351,19 @@ void burm_reduce(NODEPTR_TYPE bnode, int goalnt)
 
   switch (ruleNo) {
   case 1:
-
+   printf("\tMOVQ $%d, %%rax\n", bnode->value);
     break;
   case 2:
  
+    break;
+  case 3:
+  bnode->value = L(bnode)->value + R(bnode)->value; 
+    break;
+  case 4:
+   
+    break;
+  case 5:
+   bnode->value = L(bnode)->value * R(bnode)->value;
     break;
   default:    assert (0);
   }

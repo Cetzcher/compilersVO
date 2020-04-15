@@ -5,19 +5,22 @@
 #define STATE_TYPE void*
 #include "scope.h"
 #include "instructions.h"
+
+#define L(p)   	((p)->children[0])
+#define R(p)    ((p)->children[1])
+
 %}
 
 %start expr
-%term  OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_Mult = 7 OP_HASH = 8 OP_LTEQ = 9
-
+%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10
 %%
 
-expr: const                     # 0 #   
+expr: const                     # 0 #   printf("\tMOVQ $%d, %%rax\n", bnode->value);
 
 const: OP_NUM                   # 0 # 
-const: OP_PLUS(const, const)    # 0 #
-const: OP_MINUS(const)          # 0 #
-const: OP_Mult(const, const)    # 0 #
+const: OP_PLUS(const, const)    # 0 #  bnode->value = L(bnode)->value + R(bnode)->value; 
+const: OP_MINUS(const)          # 0 #   
+const: OP_MULT(const, const)    # 0 #   bnode->value = L(bnode)->value * R(bnode)->value;
 %%
 
 

@@ -12,9 +12,10 @@ enum Ops {
     OP_VAR = 4,
     OP_ZERO = 5,
     OP_ONE = 6,
-    OP_Mult = 7,
+    OP_MULT = 7,
     OP_HASH = 8,
-    OP_LTEQ = 9
+    OP_LTEQ = 9,
+    OP_AND = 10
 };
 
 void init_codegen();

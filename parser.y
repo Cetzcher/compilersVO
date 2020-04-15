@@ -31,6 +31,8 @@
 @autosyn ids
 @autosyn sym
 
+@attributes {long value; } number
+@attributes {short op; } BinaryOperator
 @attributes { SymbolTree* sym;} id LoopHead CallStart
 @attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
@@ -136,13 +138,20 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
-        @codegen generate_return();
+        @codegen { /*debugSymTree(@Expression.ids@, 0);*/ burm_label(@Expression.ids@); burm_reduce(@Expression.ids@, 1); generate_return(); }
     @}
     ;
 
 IfExprHead: TIF Expression TTHEN;
 LoopHead: id ':' TLOOP;
-BinaryOperator: '+' | lessThan | '#' | TAND | '*';
+BinaryOperator: 
+    '+'             @{ @i @BinaryOperator.op@ = OP_PLUS; @}
+    | lessThan      @{ @i @BinaryOperator.op@ = OP_LTEQ; @}
+    | '#'           @{ @i @BinaryOperator.op@ = OP_HASH; @}
+    | TAND          @{ @i @BinaryOperator.op@ = OP_AND; @}
+    | '*'           @{ @i @BinaryOperator.op@ = OP_MULT; @}
+    ;
+
 Unary: TNOT | '-';
 
 PrefixTerm: 
@@ -152,7 +161,7 @@ PrefixTerm:
 
 Expression:                                     
     PrefixTerm
-    | Expression BinaryOperator Term           @{ @i @Expression.ids@ = addChildrenMode(@Expression.1.ids@, @Term.ids@, FALSE); @}
+    | Expression BinaryOperator Term           @{ @i @Expression.ids@ = exprnode(@Expression.1.ids@, @BinaryOperator.op@, @Term.ids@); @}
     ;
 
 CallArgs: 
@@ -170,9 +179,9 @@ Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(newTree("!Call"),
 
 
 Term: 
-    number                  @{ @i @Term.ids@ = single("!number node"); @}
+    number                  @{ @i @Term.ids@ = num(@number.value@); @}
     | '(' Expression ')'  
-    | id                    @{ @i @Term.ids@ = addChild(newTree("!Factors"), @id.sym@); @}
+    | id                    @{ @i @Term.ids@ = ID(@id.sym@); @}
     | Call
     ;
  
