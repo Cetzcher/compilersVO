@@ -1,6 +1,8 @@
 #ifndef SCOPE_H
 #define SCOPE_H
 
+#include "registerinfo.h"
+
 #define TRUE 1
 #define FALSE 0
 #define FAIL_IF_FOUND  1
@@ -25,8 +27,10 @@ enum MType {
 typedef enum MType MetaType; 
 typedef struct burm_state *STATEPTR_TYPE; 
 
+
+
 typedef struct SymbolTree {
-    struct SymbolTree *link;
+    struct SymbolTree *link;                    // links a symbol to its first occourence in scope or parents scope
     struct SymbolTree *parent;
     struct SymbolTree** children;
     unsigned short size;        // size of children allocated
@@ -42,6 +46,7 @@ typedef struct SymbolTree {
     int memref;         // location of variable on stack,  op should be OP_VAR
     int declaredVars;   // how many variables are currently declared
     int parameters;     // parameter count   
+    reginfo* assignedRegister;
 
     // burm state
     STATEPTR_TYPE stateLabel; 
@@ -71,7 +76,9 @@ SymbolTree* statements(SymbolTree* stmts, SymbolTree* stmt);
 SymbolTree* num(long val);
 SymbolTree* ID(SymbolTree* sym);
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child);
-SymbolTree* exprnode(SymbolTree* left, int op, SymbolTree* right);
+SymbolTree* exprnode(SymbolTree* left, SymbolTree* op, SymbolTree* right);
+SymbolTree* opnode(int op, SymbolTree* child);
+SymbolTree* oplist(SymbolTree* lst, SymbolTree* head);
 // adds all children of parent of child to tree at the curent level
 SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs);
 SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, boolean validate_tree);

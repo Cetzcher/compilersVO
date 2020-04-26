@@ -17,6 +17,7 @@ enum Ops {
     OP_LTEQ = 9,
     OP_AND = 10,
     OP_NOT = 11,
+    OP_MEMACESS = 12
 };
 
 void init_codegen();
@@ -24,7 +25,15 @@ void declare_func(SymbolTree* function);
 void generate_return();
 void baserelative(int x);
 void clear();
-void add(SymbolTree* left, SymbolTree* right);
+void finalize(SymbolTree* node);
+void move(char* from, char* to);
+void moverel(char* from, int offset, char* to);
+void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, long const);
+void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void and(SymbolTree* lhs, SymbolTree* rhs);
+void minus(SymbolTree* res, SymbolTree* lhs);
+void not(SymbolTree* lhs);
+
 
 #endif

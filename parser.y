@@ -32,9 +32,9 @@
 @autosyn sym
 
 @attributes {long value; } number
-@attributes {short op; } BinaryOperator Unary
 @attributes { SymbolTree* sym;} id LoopHead CallStart
-@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall
+@attributes {SymbolTree* op;} BinaryOperator Unary UnaryList 
+@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall Args ArgsTrailed CallArgsTrailed 
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
 @traversal @preorder codegen
@@ -61,20 +61,26 @@ FuncList:
     @}
     ;
 
-Funcdef: id '(' ArgList ')' StmtList TEND  ';'  
+Funcdef: id '(' Args ')' StmtList TEND  ';'  
     @{ 
-        @i @Funcdef.context@ = func(@id.sym@, @ArgList.ids@, @StmtList.context@); 
+        @i @Funcdef.context@ = func(@id.sym@, @Args.ids@, @StmtList.context@); 
         @codegen declare_func(@Funcdef.context@);
     @}
-    | id '(' ArgList ')'  TEND  ';'             @{ @i @Funcdef.context@ = func(@id.sym@, @ArgList.ids@, NULL); @}
     ;
 
-ArgList:       /* empty */                      @{ @i @ArgList.ids@ = param(NULL, NULL); @}
-    | id                                        @{ @i @ArgList.ids@ = param(NULL, @id.sym@); @}
-    | ArgList ',' id                            @{ @i @ArgList.ids@ = param(@ArgList.1.ids@, @id.sym@); @}
+
+Args:     /* empty */                  @{ @i @Args.ids@ = param(NULL, NULL); @}
+    | ArgsTrailed id                   @{ @i @Args.ids@ = param(@ArgsTrailed.ids@, @id.sym@); @}
+    | ArgsTrailed                       
+    | id                               @{ @i @Args.ids@ = param(NULL, @id.sym@); @}
     ;
 
-StmtList: Stmt 
+ArgsTrailed: id ','                  @{ @i @ArgsTrailed.ids@ = param(NULL, @id.sym@); @} 
+    | ArgsTrailed id ','             @{ @i @ArgsTrailed.ids@ = param(@ArgsTrailed.1.ids@, @id.sym@); @}
+    ;
+
+StmtList: /* empty */ @{ @i @StmtList.context@ = metaNode(ExpressionStatement); @} 
+    | Stmt 
     @{
         @i @StmtList.context@ = statements(@Stmt.context@, NULL);
         @i @Stmt.inherited@ = @StmtList.context@; 
@@ -145,20 +151,27 @@ Stmt: TVAR id assignment Expression    ';'
 IfExprHead: TIF Expression TTHEN;
 LoopHead: id ':' TLOOP;
 BinaryOperator: 
-    '+'             @{ @i @BinaryOperator.op@ = OP_PLUS; @}
-    | lessThan      @{ @i @BinaryOperator.op@ = OP_LTEQ; @}
-    | '#'           @{ @i @BinaryOperator.op@ = OP_HASH; @}
-    | TAND          @{ @i @BinaryOperator.op@ = OP_AND; @}
-    | '*'           @{ @i @BinaryOperator.op@ = OP_MULT; @}
+    '+'             @{ @i @BinaryOperator.op@ = opnode(OP_PLUS, NULL); @}
+    | lessThan      @{ @i @BinaryOperator.op@ = opnode(OP_LTEQ, NULL); @}
+    | '#'           @{ @i @BinaryOperator.op@ = opnode(OP_HASH, NULL); @}
+    | TAND          @{ @i @BinaryOperator.op@ = opnode(OP_AND, NULL); @}
+    | '*'           @{ @i @BinaryOperator.op@ = opnode(OP_MULT, NULL); @}
     ;
 
 Unary: 
-    TNOT    @{ @i @Unary.op@ = OP_NOT; @} 
-    | '-'   @{ @i @Unary.op@ = OP_MINUS; @}
+    TNOT    @{ @i @Unary.op@ = opnode(OP_NOT, NULL); @} 
+    | '-'   @{ @i @Unary.op@ = opnode(OP_MINUS, NULL); @}
+    | '*'   @{ @i @Unary.op@ = opnode(OP_MEMACESS, NULL); @}
+    ;
+
+UnaryList: Unary
+    @{ @i @UnaryList.op@ = @Unary.op@; @}
+    | UnaryList Unary   
+    @{ @i @UnaryList.op@ = oplist(@UnaryList.op@, @Unary.op@); @}
     ;
 
 PrefixTerm: 
-    Unary Term                              @{ @i @PrefixTerm.ids@ = exprnode(@Term.ids@, @Unary.op@, NULL); @} 
+    UnaryList Term                              @{ @i @PrefixTerm.ids@ = exprnode(@Term.ids@, @UnaryList.op@, NULL); @} 
     | Term
     ;
 
@@ -167,9 +180,14 @@ Expression:
     | Expression BinaryOperator Term           @{ @i @Expression.ids@ = exprnode(@Expression.1.ids@, @BinaryOperator.op@, @Term.ids@); @}
     ;
 
-CallArgs: 
-    Expression                @{ @i @CallArgs.ids@ = @Expression.ids@; @}
-    | CallArgs ',' Expression   @{ @i @CallArgs.ids@ = addChildrenMode(@CallArgs.1.ids@, @Expression.ids@, FALSE); @}
+CallArgs: /* empty */              @{ @i @CallArgs.ids@ = metaNode(ExpressionStatement); @}
+    | CallArgsTrailed Expression    @{ @i @CallArgs.ids@ = addChildrenMode(@CallArgsTrailed.ids@, @Expression.ids@, FALSE); @}
+    | CallArgsTrailed
+    | Expression                    @{ @i @CallArgs.ids@ = @Expression.ids@; @}
+    ;
+
+CallArgsTrailed: Expression ','         @{ @i @CallArgsTrailed.ids@ = @Expression.ids@; @}
+    | CallArgsTrailed Expression ','    @{ @i @CallArgsTrailed.ids@ = addChildrenMode(@CallArgsTrailed.1.ids@, @Expression.ids@, FALSE); @}
     ;
 
 
@@ -177,7 +195,6 @@ MemAcess: '*' Term
     ;
 
 Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
-    | id '(' ')'            @{ @i @Call.ids@ = newTree("!Call"); @}
     ;
 
 
@@ -197,6 +214,6 @@ void yyerror(char* s) {
 }
 int main() {
     yyparse();
-    printf(" *** Parsed programm *** \n");
+    //printf(" *** Parsed programm *** \n");
     return 0;
 }

@@ -531,11 +531,11 @@ struct yyyT1 {long value; };
 typedef struct yyyT1 *yyyP1; 
 
 
-struct yyyT2 {short op; }; 
+struct yyyT2 { SymbolTree* sym;}; 
 typedef struct yyyT2 *yyyP2; 
 
 
-struct yyyT3 { SymbolTree* sym;}; 
+struct yyyT3 {SymbolTree* op;}; 
 typedef struct yyyT3 *yyyP3; 
 
 
@@ -943,7 +943,7 @@ YY_RULE_SETUP
 case 14:
 YY_RULE_SETUP
 #line 101 "oxout.l"
-{yyyGenLeaf(1,3,yyyLRCIL+1,yyyLRCIL+2); (((yyyP3)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
+{yyyGenLeaf(1,2,yyyLRCIL+1,yyyLRCIL+2); (((yyyP2)(yyyTermBuffer.snBufPtr))->sym) = single2(strdup(yytext), yylineno);return id;} 
 	YY_BREAK
 case 15:
 YY_RULE_SETUP

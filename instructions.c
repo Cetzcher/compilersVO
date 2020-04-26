@@ -1,6 +1,12 @@
 #include "instructions.h"
+#include "registerinfo.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+// this is maybe the worst code in this entire program but it is also magic
+// we set lhs if lhs is linked otherwise we use it as is.
+#define LINK_VARS lhs = lhs->link == NULL ? lhs: lhs->link; rhs = rhs->link == NULL ? rhs : rhs->link;
+#define LINK_UNARY lhs = lhs->link == NULL ? lhs: lhs->link;
 
 const char* argumentRegister[6] = {
     "rdi",
@@ -13,10 +19,12 @@ const char* argumentRegister[6] = {
 
 const char* stackpointer = "%rsp";
 const char* basepointer = "%rbp";
+const char* rsi_reg = "%rsi";
 int rsi_used = 0;
 
 
 void init_codegen(SymbolTree* rootlevel) {
+    initregs();
     printf(".text\n");
     for(int i = 0; i < rootlevel->count; i++) {
         char* name = rootlevel->children[i]->var;
@@ -29,7 +37,7 @@ void declare_func(SymbolTree* function) {
     printf("\n\t##    Function      ##\n");
     printf("%s:\n", function->var);
     printf("\t# %s (varcount %d, parmcount %d)\n", function->var, function->parameters, function->declaredVars);
-    const int reservedSpace = function->parameters + function->declaredVars;
+    const int reservedSpace = function->declaredVars;
     // reserve space on the stack
     // save call frame
     printf("\tPUSHQ %s \t\t# make room for basepointer\n", basepointer);
@@ -37,12 +45,27 @@ void declare_func(SymbolTree* function) {
     // make room for local variables
     if(reservedSpace)
         printf("\tSUBQ $%d, %s \t\t# reserve space for %d vars\n", (reservedSpace) * 8, stackpointer, reservedSpace);
-    printf("\tMOVQ $0, %%rax # save rax\n");  
     // move params onto stack
     for(int i = 0; i < function->parameters; i++) {
-        printf("\tMOVQ %%%s, -%d(%s)\n", argumentRegister[i], 8 * (i + 1), basepointer);
+        // functions children 0 to 'parameters' will be our arguments as nodes
+        // we can therfore give them the correct register
+        reginfo* argreg = getArgRegister(i + 1); 
+        argreg->isfree = 0;
+        SymbolTree* argnode = function->children[i];
+        argnode->assignedRegister = argreg;
+        //printf("argnode pointer %p, name %s, reg %s, regpointer %p\n", argnode, argnode->var, argnode->assignedRegister->name, argnode->assignedRegister);
     }
     printf("\n");
+}
+
+void finalize(SymbolTree* node) {
+    // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
+    reginfo* reg = node->assignedRegister;
+    reginfo* rax = getRAX();
+    if(reg == rax)
+        printf("\t#value is already in rax\n");
+    else
+        printf("\tMOVQ %%%s, %%rax\n", reg->name);
 }
 
 void generate_return() {
@@ -58,15 +81,54 @@ void baserelative(int x) {
     printf(" -%d(%s) ", x * 8, basepointer);
 }
 
-void add(SymbolTree* left, SymbolTree* right) {
-    left = left->link;
-    right = right->link;
-    printf("\tMOVQ");
-    baserelative(left->memref);
-    printf(", %%rsi\n");
-    printf("\tADDQ");
-    baserelative(right->memref);
-    printf(", %%rsi\n");
+void move(char* from, char* to) {
+    printf("\tMOVQ %s, %s\n", from, to);
+}
+void moverel(char* from, int offset, char* to) {
+    printf("\tMOVQ -%d(%s), %s\n", offset * 8, from, to);
+}
+
+
+void add(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_VARS
+    //printf("**leftpointer: %p, left: %s, leftreg: %s, regpointer %p\n", left, left->var, left->assignedRegister->name, left->assignedRegister);
+    printf("\tADDQ %%%s, %%%s\n", lhs->assignedRegister->name, rhs->assignedRegister->name);
+    res->assignedRegister = rhs->assignedRegister;    
+    // mark left as free
+    rhs->assignedRegister->isfree = 1;
 }
 
 void addc(SymbolTree* res, long const);
+
+
+void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_VARS
+    // we move left into rax
+    // we then mult with right and free both registers again
+    printf("\tMOVQ %%%s, %%rax\n", lhs->assignedRegister->name);
+    printf("\tMULQ %%%s\n", rhs->assignedRegister->name);
+    lhs->assignedRegister->isfree = 1;
+    rhs->assignedRegister->isfree = 1;
+    reginfo* rax = getRAX();
+    rax->isfree = 0;                // mark occoupied
+    res->assignedRegister = rax;
+}
+
+void and(SymbolTree* lhs, SymbolTree* rhs) {
+    lhs = lhs->link;
+    rhs = rhs->link;
+    moverel(basepointer, lhs->memref, rsi_reg);
+    printf("\tANDQ");
+    baserelative(rhs->memref);
+    printf(", %s\n", rsi_reg);
+}
+
+void minus(SymbolTree* res, SymbolTree* lhs) {
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    printf("\t NEGQ %%%s\n", lhs->assignedRegister->name);
+}
+
+void not(SymbolTree* lhs) {
+
+}

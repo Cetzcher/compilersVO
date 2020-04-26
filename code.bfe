@@ -8,6 +8,8 @@
 
 #define L(p)   	((p)->children[0])
 #define R(p)    ((p)->children[1])
+#define UNPACK_3 bnode, bnode->children[0], bnode->children[1] 
+#define UNPACK_2 bnode, bnode->children[0]
 
 %}
 
@@ -16,7 +18,7 @@
 %%
 
 expr: const                     # 0 #   printf("\tMOVQ $%d, %%rax\n", bnode->value);
-expr: varexpr                   # 0 #   printf("\tMOVQ %%rsi, %%rax\n");
+expr: reg                       # 0 #   finalize(bnode);
 
 const: OP_NUM                   # 0 # 
 const: OP_PLUS(const, const)    # 0 #   bnode->value = L(bnode)->value + R(bnode)->value; 
@@ -28,7 +30,12 @@ const: OP_LTEQ(const, const)    # 0 #   bnode->value = (L(bnode)->value <= R(bno
 const: OP_HASH(const, const)    # 0 #   bnode->value = (L(bnode)->value != R(bnode)->value) ? -1 : 0;
 
 
-varexpr: OP_PLUS(OP_VAR, OP_VAR) # 1 # add(L(bnode), R(bnode));
+reg: OP_PLUS(reg, reg)    # 1 # add(UNPACK_3);
+reg: OP_MULT(reg, reg)    # 2 # mul(UNPACK_3);
+reg: OP_AND(reg, reg)     # 1 # and(L(bnode), R(bnode));
+reg: OP_MINUS(reg)           # 1 # minus(UNPACK_2);
+reg: OP_NOT(reg)             # 1 # not(L(bnode));
+reg: OP_VAR                     # 0 # 
 
 %%
 

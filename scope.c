@@ -42,6 +42,7 @@ SymbolTree* _create(int size, MetaType type, variable var) {
     tree->parameters = 0;
     tree->declaredVars = 0;
     tree->link = NULL;
+    tree->assignedRegister = NULL;
     for(int i = 0; i < tree->size; i++)
         tree->children[i] = NULL;
     return tree;
@@ -174,19 +175,31 @@ SymbolTree* ID(SymbolTree* sym) {
     return sym;
 }
 
-SymbolTree* exprnode(SymbolTree* left, int op, SymbolTree* right) {
-    SymbolTree* parent = _create(2, OpNode, NULL);
-    parent->op = op;
-    addChild(parent, left);
-    if(right != NULL)
-        addChild(parent, right);
-    return parent;
+SymbolTree* exprnode(SymbolTree* left, SymbolTree* op, SymbolTree* right) {
+    addChild(op, left);
+    addChild(op, right);
+    return op;
+}
+
+SymbolTree* opnode(int op, SymbolTree* child) {
+    SymbolTree* node = _create(2, OpNode, NULL);
+    node->op = op;
+    addChild(node, child);
+    return node;
+}
+
+SymbolTree* oplist(SymbolTree* lst, SymbolTree* head) {
+    if(lst == NULL || head == NULL)
+        criticalFailure(4, "op node is null or lst is null in oplist(Symtree, Symtree)");
+    addChild(lst, head);
+    return head;
 }
 
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
     // check if there is enough room in tree
     if(child == NULL) {
-        printf("skipping addChild ... child is null\n");
+        // TODO: might be helpful to actually have a logger or something for stuff like this and produce proper debug output
+        //printf("skipping addChild ... child is null\n");
         return tree;
     }
     if(tree == NULL) {
@@ -306,7 +319,8 @@ SymbolTree* validate(SymbolTree* tree) {
 }
 
 // subtree is basically just a list subtree should also be a root 
-SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree) {
+SymbolTree* chkdecl(SymbolTree* tree, SymbolTree* subtree) {
+    printf("checking subtree declared ...\n");
     // we could optimize here
     for(int i = 0; i < subtree->count; i++) {
         SymbolTree* current = subtree->children[i];
@@ -324,6 +338,28 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree) {
         // we perform a lookup for each node in the subtree but we only check the level below the root node
     }
     return tree;    // return the current tree level
+}
+
+SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
+    // breadth first search sub 
+    for(int i = 0; i < sub->count; i++) {
+        SymbolTree* currentSymbol = sub->children[i];
+        if(currentSymbol->var != NULL) {
+            // we are looking at a var or lable
+            SymbolTree* key = lookupInternal(tree, currentSymbol->var);
+            if(key == NULL) {
+                printf("Error: %s use before declartation @line:%d\n", currentSymbol->var, currentSymbol->line);
+                criticalNoMSG(3);
+            } else {
+                currentSymbol->link = key;
+            }
+        } else {
+            // we have found some other node, eventually an op node 
+            // we recurse into the subtree of that
+            checkSubtreeDeclared(tree, currentSymbol);
+        }
+    }
+    return tree;
 }
 
 void checkDeclared(SymbolTree* tree, variable var) {
