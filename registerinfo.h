@@ -12,7 +12,8 @@ void initregs();
 reginfo getNextFree();
 reginfo* getArgRegister(int arg);
 reginfo* getRAX();
-
+reginfo* getRBX();
+reginfo* getTempReg();
 
 
 

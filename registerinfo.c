@@ -1,7 +1,7 @@
 #include "registerinfo.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-#define INIT_REG(r, n) (r.name = n; r.isfree = 1;)
 
 reginfo rax ;
 reginfo rbx ;
@@ -11,6 +11,7 @@ reginfo rdx ;
 reginfo rcx ;
 reginfo r9 ;
 reginfo r8;
+reginfo r10;
 
 void initregs() {
     rax.isfree = 1; rax.name = "rax";
@@ -21,6 +22,7 @@ void initregs() {
     rcx.isfree = 1; rcx.name = "rcx";
     r9.isfree = 1;  r9.name = "r9";
     r8.isfree = 1;  r8.name = "r8";
+    r10.isfree = 1;  r10.name = "r10";
 
 }
 
@@ -61,6 +63,18 @@ reginfo* getRAX() {
     return &rax;
 }
 
+reginfo* getRBX() {
+    return &rbx;
+}
+
+
+reginfo* getTempReg() {
+    if(r10.isfree)
+        return &r10;
+    else if(rbx.isfree)
+        return &rbx;
+    return NULL;
+}
 
 
 

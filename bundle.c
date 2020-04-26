@@ -4,5 +4,5 @@
 extern long long f(long long a, long long b);
 
 int main() {
-    printf("calling f with f(5, 10) res = %lld\n", f(5, 10));
+    printf("calling f with f(1, 2) res = %lld\n", f(1, 2));
 }

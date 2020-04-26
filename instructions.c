@@ -7,6 +7,8 @@
 // we set lhs if lhs is linked otherwise we use it as is.
 #define LINK_VARS lhs = lhs->link == NULL ? lhs: lhs->link; rhs = rhs->link == NULL ? rhs : rhs->link;
 #define LINK_UNARY lhs = lhs->link == NULL ? lhs: lhs->link;
+#define REG(p) ((p)->assignedRegister->name)
+#define REG_FREE(p) ((p)->assignedRegister->isfree)
 
 const char* argumentRegister[6] = {
     "rdi",
@@ -91,44 +93,68 @@ void moverel(char* from, int offset, char* to) {
 
 void add(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     LINK_VARS
-    //printf("**leftpointer: %p, left: %s, leftreg: %s, regpointer %p\n", left, left->var, left->assignedRegister->name, left->assignedRegister);
-    printf("\tADDQ %%%s, %%%s\n", lhs->assignedRegister->name, rhs->assignedRegister->name);
-    res->assignedRegister = rhs->assignedRegister;    
-    // mark left as free
-    rhs->assignedRegister->isfree = 1;
-}
+    reginfo* target = getTempReg();
+    if(target != NULL) {
+        res->assignedRegister = target;
+        target->isfree = 0;
+        printf("\tMOVQ %%%s, %%%s\n", lhs->assignedRegister->name, target->name);
+        printf("\tADDQ %%%s, %%%s\n", rhs->assignedRegister->name, target->name);
+        rhs->assignedRegister->isfree = 1;
 
-void addc(SymbolTree* res, long const);
+    } else {
+        printf("\tADDQ %%%s, %%%s\n", lhs->assignedRegister->name, rhs->assignedRegister->name);
+        res->assignedRegister = rhs->assignedRegister;
+    }
+    lhs->assignedRegister->isfree = 1;
+
+}
+void addc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
+    LINK_UNARY
+    printf("\tADDQ $%d, %%%s\n", constant->value, REG(lhs));
+    res->assignedRegister = lhs->assignedRegister;
+}
+void addcr(SymbolTree* res,  SymbolTree* constant, SymbolTree* arg) { addc(res, arg, constant); }
+
 
 
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     LINK_VARS
     // we move left into rax
     // we then mult with right and free both registers again
+    reginfo* rax = getRAX();
+    rax->isfree = 0;                // mark occoupied
+    res->assignedRegister = rax;
     printf("\tMOVQ %%%s, %%rax\n", lhs->assignedRegister->name);
     printf("\tMULQ %%%s\n", rhs->assignedRegister->name);
     lhs->assignedRegister->isfree = 1;
     rhs->assignedRegister->isfree = 1;
-    reginfo* rax = getRAX();
-    rax->isfree = 0;                // mark occoupied
-    res->assignedRegister = rax;
 }
 
-void and(SymbolTree* lhs, SymbolTree* rhs) {
-    lhs = lhs->link;
-    rhs = rhs->link;
-    moverel(basepointer, lhs->memref, rsi_reg);
-    printf("\tANDQ");
-    baserelative(rhs->memref);
-    printf(", %s\n", rsi_reg);
+void and(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_VARS
+    reginfo* target = getTempReg();
+    if(target != NULL) {
+        res->assignedRegister = target;
+        target->isfree = 0;
+        printf("\tMOVQ %%%s, %%%s\n", lhs->assignedRegister->name, target->name);
+        printf("\tANDQ %%%s, %%%s\n", rhs->assignedRegister->name, target->name);
+        rhs->assignedRegister->isfree = 1;
+
+    } else {
+        printf("\tANDQ %%%s, %%%s\n", lhs->assignedRegister->name, rhs->assignedRegister->name);
+        res->assignedRegister = rhs->assignedRegister;
+    }
+    lhs->assignedRegister->isfree = 1;
 }
 
 void minus(SymbolTree* res, SymbolTree* lhs) {
     LINK_UNARY
     res->assignedRegister = lhs->assignedRegister;
-    printf("\t NEGQ %%%s\n", lhs->assignedRegister->name);
+    printf("\tNEGQ %%%s\n", REG(lhs));
 }
 
-void not(SymbolTree* lhs) {
-
+void not(SymbolTree* res, SymbolTree* lhs) {
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    printf("\tNOTQ %%%s", REG(lhs));
 }

@@ -29,11 +29,12 @@ void finalize(SymbolTree* node);
 void move(char* from, char* to);
 void moverel(char* from, int offset, char* to);
 void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
-void addc(SymbolTree* res, long const);
+void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
+void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
-void and(SymbolTree* lhs, SymbolTree* rhs);
+void and(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
 void minus(SymbolTree* res, SymbolTree* lhs);
-void not(SymbolTree* lhs);
+void not(SymbolTree* res, SymbolTree* lhs);
 
 
 #endif

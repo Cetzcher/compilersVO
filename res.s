@@ -8,15 +8,11 @@ f:
 	PUSHQ %rbp 		# make room for basepointer
 	MOVQ %rsp, %rbp 	# set frame pointer
 
-	MOVQ %rdi, %rax
-	MULQ %rsi
-	MOVQ %rax, %rax
-	MULQ %rsi
-	 NEGQ %rax
-	ADDQ %rax, %rsi
-	 NEGQ %rsi
-	MOVQ %rsi, %rax
-	MULQ %rdi
-	#value is already in rax
+	ADDQ $412, %rdi
+	MOVQ %rdi, %r10
+	ADDQ %rsi, %r10
+	ADDQ $33, %r10
+	ADDQ $7, %r10
+	MOVQ %r10, %rax
 	leave 			# leave function  
 	ret
