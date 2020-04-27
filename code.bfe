@@ -14,7 +14,7 @@
 %}
 
 %start expr
-%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11
+%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11 OP_MEMACESS = 12
 %%
 
 expr: const                     # 0 #   printf("\tMOVQ $%d, %%rax\n", bnode->value);
@@ -29,15 +29,20 @@ const: OP_NOT(const)            # 0 #   bnode->value = ~(L(bnode)->value);
 const: OP_LTEQ(const, const)    # 0 #   bnode->value = (L(bnode)->value <= R(bnode)->value) ? -1 : 0; 
 const: OP_HASH(const, const)    # 0 #   bnode->value = (L(bnode)->value != R(bnode)->value) ? -1 : 0;
 
-
 reg: OP_PLUS(reg, reg)    # 2 # add(UNPACK_3);
 reg: OP_PLUS(reg, const)  # 1 # addc(UNPACK_3);
 reg: OP_PLUS(const, reg)  # 1 # addcr(UNPACK_3);
 reg: OP_MULT(reg, reg)    # 2 # mul(UNPACK_3);
-reg: OP_AND(reg, reg)     # 2 # and(UNPACK_3);
+reg: OP_MULT(const, reg)    # 3 # mulcr(UNPACK_3);
+reg: OP_MULT(reg, const)    # 3 # mulc(UNPACK_3);
+reg: OP_AND(reg, reg)       # 1 # and(UNPACK_3);
+reg: OP_AND(reg, const)     # 1 # andc(UNPACK_3);
+reg: OP_AND(const, reg)     # 1 # andcr(UNPACK_3);
 reg: OP_MINUS(reg)        # 2 # minus(UNPACK_2);
 reg: OP_NOT(reg)          # 2 # not(UNPACK_2);
-reg: OP_VAR               # 0 # 
+reg: OP_MEMACESS(reg)       # 1 # memacess(UNPACK_2);
+reg: OP_MEMACESS(const)     # 1 # memacessc(UNPACK_2);
+reg: OP_VAR               # 1 # 
 
 %%
 

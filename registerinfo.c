@@ -12,6 +12,7 @@ reginfo rcx ;
 reginfo r9 ;
 reginfo r8;
 reginfo r10;
+reginfo r11;
 
 void initregs() {
     rax.isfree = 1; rax.name = "rax";
@@ -23,6 +24,7 @@ void initregs() {
     r9.isfree = 1;  r9.name = "r9";
     r8.isfree = 1;  r8.name = "r8";
     r10.isfree = 1;  r10.name = "r10";
+    r11.isfree = 1;  r11.name = "r11";
 
 }
 
@@ -39,13 +41,15 @@ reginfo* allregs() {
     return regs;
 }
 
-reginfo getNextFree() {
+reginfo* getNextFree() {
     reginfo* regs = allregs();
     for(int i = 0; i < 8; i++) {
         if(regs[i].isfree)
-            return regs[i];
+            return &regs[i];
     }
+    return NULL;
 }
+
 
 reginfo* getArgRegister(int arg) {
     switch (arg)
@@ -67,12 +71,15 @@ reginfo* getRBX() {
     return &rbx;
 }
 
+reginfo* getR11() {
+    return &r11;
+}
 
 reginfo* getTempReg() {
     if(r10.isfree)
         return &r10;
     else if(rbx.isfree)
-        return &rbx;
+        return &rbx;        // need to save rbx at some point
     return NULL;
 }
 

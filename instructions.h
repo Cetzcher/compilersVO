@@ -32,9 +32,15 @@ void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void mulc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
+void mulcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg );
 void and(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void andc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
+void andcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg );
 void minus(SymbolTree* res, SymbolTree* lhs);
 void not(SymbolTree* res, SymbolTree* lhs);
+void memacess(SymbolTree* res, SymbolTree* lhs);
+void memacessc(SymbolTree* res, SymbolTree* lhs);
 
 
 #endif

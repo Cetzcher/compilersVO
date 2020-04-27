@@ -167,7 +167,7 @@ Unary:
 UnaryList: Unary
     @{ @i @UnaryList.op@ = @Unary.op@; @}
     | UnaryList Unary   
-    @{ @i @UnaryList.op@ = oplist(@UnaryList.op@, @Unary.op@); @}
+    @{ @i @UnaryList.op@ = oplist(@UnaryList.1.op@, @Unary.op@); @}
     ;
 
 PrefixTerm: 

@@ -1,4 +1,4 @@
 f(arg1, arg2)
-    return (400 + 12 + arg1 + arg2 + 33 + 7);
+    return -----arg1;
 end;
 

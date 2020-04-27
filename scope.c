@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_SCOPE 0
+#define DEBUG_SCOPE 1
 #define SEMANTIC_VALIDATE
 
 void criticalFailure(int exitCode, char* msg) {
@@ -176,9 +176,11 @@ SymbolTree* ID(SymbolTree* sym) {
 }
 
 SymbolTree* exprnode(SymbolTree* left, SymbolTree* op, SymbolTree* right) {
+    if(op == NULL && right == NULL)
+        return left;
     addChild(op, left);
     addChild(op, right);
-    return op;
+    return root(op);
 }
 
 SymbolTree* opnode(int op, SymbolTree* child) {
@@ -189,8 +191,14 @@ SymbolTree* opnode(int op, SymbolTree* child) {
 }
 
 SymbolTree* oplist(SymbolTree* lst, SymbolTree* head) {
-    if(lst == NULL || head == NULL)
-        criticalFailure(4, "op node is null or lst is null in oplist(Symtree, Symtree)");
+    if( head == NULL)
+        criticalFailure(4, "op node is null  in oplist(Symtree, Symtree)");
+    if(lst == NULL)
+        return head;
+    if(lst->op == head->op && (lst->op == OP_NOT || lst->op == OP_MINUS)) {
+        // prune the list here
+        return NULL;
+    }
     addChild(lst, head);
     return head;
 }
@@ -318,30 +326,14 @@ SymbolTree* validate(SymbolTree* tree) {
     return tree;
 }
 
-// subtree is basically just a list subtree should also be a root 
-SymbolTree* chkdecl(SymbolTree* tree, SymbolTree* subtree) {
-    printf("checking subtree declared ...\n");
-    // we could optimize here
-    for(int i = 0; i < subtree->count; i++) {
-        SymbolTree* current = subtree->children[i];
-        if(current->var == NULL)
-            continue;
-        SymbolTree* res = lookupInternal(tree, current->var);
-        if(res == NULL) {
-            // child[i] is not declared
-            printf("Error: %s use before declartation @line:%d\n", current->var, current->line);
-            criticalNoMSG(3);
-        } else {
-            // we have found the declaration so we link them together
-            current->link = res;
-        }
-        // we perform a lookup for each node in the subtree but we only check the level below the root node
-    }
-    return tree;    // return the current tree level
-}
 
 SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
     // breadth first search sub 
+    if(sub->var != NULL) {
+        SymbolTree* link = lookupInternal(tree, sub->var);
+        if(link != NULL)
+            sub->link = link;   // we also need to check the root
+    }
     for(int i = 0; i < sub->count; i++) {
         SymbolTree* currentSymbol = sub->children[i];
         if(currentSymbol->var != NULL) {

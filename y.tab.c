@@ -2231,7 +2231,7 @@ yyyR,0,0, yyyR,0,1, yyyR,0,0, yyyR,0,1, 0,1,1, yyyR,0,2,
 yyyR,0,2, 1,1,1, 3,1,1, yyyR,0,2, 1,1,1, yyyR,0,0, 
 yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,1, yyyR,0,0, 
 yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,0, 
-yyyR,0,0, yyyR,0,0, yyyR,0,1, yyyR,0,1, yyyR,0,2, yyyR,0,1, 
+yyyR,0,0, yyyR,0,0, yyyR,0,1, yyyR,0,2, yyyR,0,2, yyyR,0,1, 
 yyyR,0,1, yyyR,0,3, yyyR,0,0, yyyR,0,2, yyyR,0,1, yyyR,0,1, 
 yyyR,0,1, yyyR,0,2, yyyR,0,1, yyyR,0,1, yyyR,0,0, yyyR,0,1, 
 yyyR,0,0, yyyR,0,1, 
@@ -2276,12 +2276,12 @@ long yyyIEL[] = {
 72,72,74,74,74,74,74,74,
 74,74,74,74,74,74,76,76,
 78,78,78,78,78,78,78,78,
-78,78,80,80,80,82,82,84,
-86,86,88,88,90,90,92,94,
-96,96,96,98,100,100,102,102,
-104,104,106,106,108,110,110,112,
-112,112,114,114,116,116,118,118,
-120,120,122,
+78,78,80,80,82,84,84,86,
+88,88,90,90,92,92,94,96,
+98,98,98,100,102,102,104,104,
+106,106,108,108,110,112,112,114,
+114,114,116,116,118,118,120,120,
+122,122,124,
 };
 
 yyyFT yyyEntL[] = {
@@ -2292,7 +2292,7 @@ yyyFT yyyEntL[] = {
 2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 #define yyyPermitUserAlloc  0 
@@ -2941,7 +2941,7 @@ case 36:  /***yacc rule 36***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP3)(((char *)yyyRSTopN)+yyyGNSz))->op) = oplist((((yyyP3)(((char *)yyyRSTopN)+yyyGNSz))->op), (((yyyP3)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->op));     break;
+ (((yyyP3)(((char *)yyyRSTopN)+yyyGNSz))->op) = oplist((((yyyP3)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->op), (((yyyP3)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->op));     break;
     }
   break;
   case 1:  /**/

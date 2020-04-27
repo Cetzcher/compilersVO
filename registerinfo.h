@@ -9,7 +9,7 @@ typedef struct reginfo {
 
 void initregs();
 
-reginfo getNextFree();
+reginfo* getNextFree();
 reginfo* getArgRegister(int arg);
 reginfo* getRAX();
 reginfo* getRBX();
