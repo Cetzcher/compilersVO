@@ -32,16 +32,32 @@ const: OP_HASH(const, const)    # 0 #   bnode->value = (L(bnode)->value != R(bno
 reg: OP_PLUS(reg, reg)    # 2 # add(UNPACK_3);
 reg: OP_PLUS(reg, const)  # 1 # addc(UNPACK_3);
 reg: OP_PLUS(const, reg)  # 1 # addcr(UNPACK_3);
+
 reg: OP_MULT(reg, reg)    # 2 # mul(UNPACK_3);
 reg: OP_MULT(const, reg)    # 3 # mulcr(UNPACK_3);
 reg: OP_MULT(reg, const)    # 3 # mulc(UNPACK_3);
+
 reg: OP_AND(reg, reg)       # 1 # and(UNPACK_3);
 reg: OP_AND(reg, const)     # 1 # andc(UNPACK_3);
 reg: OP_AND(const, reg)     # 1 # andcr(UNPACK_3);
+
 reg: OP_MINUS(reg)        # 2 # minus(UNPACK_2);
+
 reg: OP_NOT(reg)          # 2 # not(UNPACK_2);
+
 reg: OP_MEMACESS(reg)       # 1 # memacess(UNPACK_2);
 reg: OP_MEMACESS(const)     # 1 # memacessc(UNPACK_2);
+
+reg: OP_LTEQ(reg, reg)      # 4 # lessthan(UNPACK_3);
+reg: OP_LTEQ(reg, const)    # 4 # lessthanc(UNPACK_3);
+reg: OP_LTEQ(const, reg)    # 4 # lessthancr(UNPACK_3);
+
+reg: OP_HASH(reg, reg)      # 4 # notequal(UNPACK_3);
+reg: OP_HASH(reg, const)    # 4 # notequalc(UNPACK_3);
+reg: OP_HASH(const, reg)    # 4 # notequalcr(UNPACK_3);
+
+
+
 reg: OP_VAR               # 1 # 
 
 %%

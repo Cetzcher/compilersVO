@@ -34,7 +34,7 @@ struct burm_state {
 	struct {
 		unsigned burm_expr:2;
 		unsigned burm_const:4;
-		unsigned burm_reg:4;
+		unsigned burm_reg:5;
 	} rule;
 };
 
@@ -71,7 +71,13 @@ short *burm_nts[] = {
 	burm_nts_1,	/* 21 */
 	burm_nts_1,	/* 22 */
 	burm_nts_0,	/* 23 */
-	burm_nts_2,	/* 24 */
+	burm_nts_4,	/* 24 */
+	burm_nts_5,	/* 25 */
+	burm_nts_6,	/* 26 */
+	burm_nts_4,	/* 27 */
+	burm_nts_5,	/* 28 */
+	burm_nts_6,	/* 29 */
+	burm_nts_2,	/* 30 */
 };
 
 char burm_arity[] = {
@@ -124,6 +130,12 @@ static short burm_decode_reg[] = {
 	22,
 	23,
 	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
 };
 
 int burm_rule(STATE_TYPE state, int goalnt) {
@@ -270,7 +282,7 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 				},{
 					2,	/* expr: reg */
 					0,
-					14,	/* reg: OP_VAR */
+					20,	/* reg: OP_VAR */
 				}
 			};
 			return (STATE_TYPE)&z;
@@ -342,6 +354,30 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 		break;
 	case 8: /* OP_HASH */
 		assert(l && r);
+		{	/* reg: OP_HASH(const,reg) */
+			c = l->cost[burm_const_NT] + r->cost[burm_reg_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 19;
+				burm_closure_reg(p, c + 0);
+			}
+		}
+		{	/* reg: OP_HASH(reg,const) */
+			c = l->cost[burm_reg_NT] + r->cost[burm_const_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 18;
+				burm_closure_reg(p, c + 0);
+			}
+		}
+		{	/* reg: OP_HASH(reg,reg) */
+			c = l->cost[burm_reg_NT] + r->cost[burm_reg_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 17;
+				burm_closure_reg(p, c + 0);
+			}
+		}
 		{	/* const: OP_HASH(const,const) */
 			c = l->cost[burm_const_NT] + r->cost[burm_const_NT] + 0;
 			if (c + 0 < p->cost[burm_const_NT]) {
@@ -353,6 +389,30 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 		break;
 	case 9: /* OP_LTEQ */
 		assert(l && r);
+		{	/* reg: OP_LTEQ(const,reg) */
+			c = l->cost[burm_const_NT] + r->cost[burm_reg_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 16;
+				burm_closure_reg(p, c + 0);
+			}
+		}
+		{	/* reg: OP_LTEQ(reg,const) */
+			c = l->cost[burm_reg_NT] + r->cost[burm_const_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 15;
+				burm_closure_reg(p, c + 0);
+			}
+		}
+		{	/* reg: OP_LTEQ(reg,reg) */
+			c = l->cost[burm_reg_NT] + r->cost[burm_reg_NT] + 4;
+			if (c + 0 < p->cost[burm_reg_NT]) {
+				p->cost[burm_reg_NT] = c + 0;
+				p->rule.burm_reg = 14;
+				burm_closure_reg(p, c + 0);
+			}
+		}
 		{	/* const: OP_LTEQ(const,const) */
 			c = l->cost[burm_const_NT] + r->cost[burm_const_NT] + 0;
 			if (c + 0 < p->cost[burm_const_NT]) {
@@ -476,9 +536,15 @@ NODEPTR_TYPE *burm_kids(NODEPTR_TYPE p, int eruleno, NODEPTR_TYPE kids[]) {
 	case 1: /* expr: const */
 		kids[0] = p;
 		break;
-	case 24: /* reg: OP_VAR */
+	case 30: /* reg: OP_VAR */
 	case 3: /* const: OP_NUM */
 		break;
+	case 29: /* reg: OP_HASH(const,reg) */
+	case 28: /* reg: OP_HASH(reg,const) */
+	case 27: /* reg: OP_HASH(reg,reg) */
+	case 26: /* reg: OP_LTEQ(const,reg) */
+	case 25: /* reg: OP_LTEQ(reg,const) */
+	case 24: /* reg: OP_LTEQ(reg,reg) */
 	case 19: /* reg: OP_AND(const,reg) */
 	case 18: /* reg: OP_AND(reg,const) */
 	case 17: /* reg: OP_AND(reg,reg) */
@@ -623,6 +689,24 @@ void burm_reduce(NODEPTR_TYPE bnode, int goalnt)
  memacessc(UNPACK_2);
     break;
   case 24:
+ lessthan(UNPACK_3);
+    break;
+  case 25:
+ lessthanc(UNPACK_3);
+    break;
+  case 26:
+ lessthancr(UNPACK_3);
+    break;
+  case 27:
+ notequal(UNPACK_3);
+    break;
+  case 28:
+ notequalc(UNPACK_3);
+    break;
+  case 29:
+ notequalcr(UNPACK_3);
+    break;
+  case 30:
  
     break;
   default:    assert (0);

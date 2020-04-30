@@ -7,22 +7,11 @@
 // we set lhs if lhs is linked otherwise we use it as is.
 #define LINK_VARS lhs = lhs->link == NULL ? lhs: lhs->link; rhs = rhs->link == NULL ? rhs : rhs->link;
 #define LINK_UNARY lhs = lhs->link == NULL ? lhs: lhs->link;
+#define SYMREG(p) ((p)->assignedRegister)
 #define REG(p) ((p)->assignedRegister->name)
-#define REG_FREE(p) ((p)->assignedRegister->isfree)
-
-const char* argumentRegister[6] = {
-    "rdi",
-    "rsi",
-    "rdx",
-    "rcx",
-    "r8",
-    "r9"
-};
 
 const char* stackpointer = "%rsp";
 const char* basepointer = "%rbp";
-const char* rsi_reg = "%rsi";
-int rsi_used = 0;
 
 
 void init_codegen(SymbolTree* rootlevel) {
@@ -64,12 +53,11 @@ void finalize(SymbolTree* node) {
     // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
     // TOOD: this breaks if we just return arg;
     node = node->link == NULL ? node : node->link;
-    reginfo* reg = node->assignedRegister;
     reginfo* rax = getRAX();
-    if(reg == rax)
+    if(SYMREG(node) == rax)
         printf("\t#value is already in rax\n");
     else
-        printf("\tMOVQ %%%s, %%rax\n", reg->name);
+        emit_movq(SYMREG(node), getRAX());
 }
 
 void generate_return() {
@@ -77,20 +65,7 @@ void generate_return() {
     printf("\tret\n");
 }
 
-void clear() {
-    rsi_used = 0;
-}
 
-void baserelative(int x) {
-    printf(" -%d(%s) ", x * 8, basepointer);
-}
-
-void move(char* from, char* to) {
-    printf("\tMOVQ %s, %s\n", from, to);
-}
-void moverel(char* from, int offset, char* to) {
-    printf("\tMOVQ -%d(%s), %s\n", offset * 8, from, to);
-}
 
 // perform binary operation, expects lhs and rhs to be linked
 // either uses a temp register or uses the same register
@@ -99,21 +74,29 @@ void __binop(char* op, SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     if(target != NULL) {
         res->assignedRegister = target;
         target->isfree = 0;
-        printf("\tMOVQ %%%s, %%%s\n", lhs->assignedRegister->name, target->name);
-        printf("\t%s %%%s, %%%s\n", op, rhs->assignedRegister->name, target->name);
         rhs->assignedRegister->isfree = 1;
+        emit_movq(SYMREG(lhs), target);
+        emit(op, SYMREG(rhs), target);
 
     } else {
-        printf("\t%s %%%s, %%%s\n", op, lhs->assignedRegister->name, rhs->assignedRegister->name);
+        emit(op, SYMREG(lhs), SYMREG(rhs));
         res->assignedRegister = rhs->assignedRegister;
     }
     lhs->assignedRegister->isfree = 1;
 }
 
-__unaryop(char* op, SymbolTree* res, SymbolTree* lhs) {
+void __unaryop(char* op, SymbolTree* res, SymbolTree* lhs) {
     // TODO: since this modifies registers in place it could break lots of stuff!!!
     res->assignedRegister = lhs->assignedRegister;
     printf("\t%s %%%s\n", op, REG(lhs));
+}
+
+void __freeandset(SymbolTree* lhs, SymbolTree* rhs, SymbolTree* res, reginfo* target) {
+    lhs->assignedRegister->isfree = 1;
+    if(rhs != NULL)
+        rhs->assignedRegister->isfree = 1;
+    res->assignedRegister = target;
+    target->isfree = 0;
 }
 
 
@@ -136,21 +119,18 @@ void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     // we move left into rax
     // we then mult with right and free both registers again
     reginfo* rax = getRAX();
-    rax->isfree = 0;                // mark occoupied
-    res->assignedRegister = rax;
-    printf("\tMOVQ %%%s, %%rax\n", lhs->assignedRegister->name);
+    emit_movq(SYMREG(lhs), rax);
     printf("\tMULQ %%%s\n", rhs->assignedRegister->name);
-    lhs->assignedRegister->isfree = 1;
-    rhs->assignedRegister->isfree = 1;
+    __freeandset(lhs, rhs, res, rax);
 }
 
 void mulc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
     reginfo* r =  getRAX();
+    emit_const_movq(constant->value, getR11());
     if(r != lhs->assignedRegister) {
         // lhs is not in rax
-        printf("\tMOVQ %%%s, %%rax\n", REG(lhs));
-        printf("\tMOVQ $%d, %%r11\n", constant->value);
+        emit_movq(SYMREG(lhs), r);
         lhs->assignedRegister->isfree = 1;
     }
     r->isfree = 0; 
@@ -205,3 +185,70 @@ void memacessc(SymbolTree* res, SymbolTree* lhs) {
         printf("\tLEAQ $%d, %%%s\n", lhs->value, REG(res));
     }
 }
+
+void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_VARS
+    // check if lhs <= rhs
+    // ie if lhs =src2 - rhs=src1 >= 0 set -1 otherwise set 0
+    reginfo* target = getTempReg();
+    char* lab = createLable();
+    char* comparefin = createLable();
+    printf("\tcmp %%%s, %%%s\n", REG(rhs), REG(lhs));   
+    printf("\tjge %s\n", lab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\tjmp %s\n", comparefin);
+    printf("\t%s:\n", lab);
+    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\t%s:\n", comparefin);
+    __freeandset(lhs, rhs, res, target);
+}
+void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
+    LINK_UNARY
+    reginfo* target = getTempReg();
+    char* lab = createLable();
+    char* comparefin = createLable();
+    printf("\tcmp $%lld, %%%s\n", constant->assignedRegister, REG(lhs));   
+    printf("\tjge %s\n", lab);
+    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\tjmp %s\n", comparefin);
+    printf("\t%s:\n", lab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\t%s:\n", comparefin);
+    __freeandset(lhs, NULL, res, target);
+}
+
+void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
+    lessthanc(res, arg, constant);   
+    // we need to invert our result so we generate a NOTQ instruction afterwards
+    printf("\tnotq %%%s\n", res->assignedRegister->name);
+}
+
+void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    reginfo* target = getTempReg();
+    char* eqlab = createLable();
+    char* aftercompare = createLable();
+    printf("\ttest %%%s, %%%s\n", REG(lhs), REG(rhs));
+    printf("\tje %s\n", eqlab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\tjmp %s\n", aftercompare);
+    printf("\t%s:\n", eqlab);
+    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\t%s:\n", target->name);
+    __freeandset(lhs, rhs, res, target);
+}
+void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
+    LINK_UNARY
+    reginfo* target = getTempReg();
+    char* eqlab = createLable();
+    char* aftercomp = createLable();
+    printf("\ttest $%lld, %%%s\n", constant->value, REG(lhs));
+    printf("\tje %s\n", eqlab);
+    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\tjmp %s\n", aftercomp);
+    printf("\t%s:\n", eqlab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\t%s:\n", aftercomp);
+    __freeandset(lhs, NULL, res, target);
+}
+
+void notequalcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) { notequalc(res, arg, constant); }

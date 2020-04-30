@@ -23,11 +23,7 @@ enum Ops {
 void init_codegen();
 void declare_func(SymbolTree* function);
 void generate_return();
-void baserelative(int x);
-void clear();
 void finalize(SymbolTree* node);
-void move(char* from, char* to);
-void moverel(char* from, int offset, char* to);
 void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
@@ -41,6 +37,11 @@ void minus(SymbolTree* res, SymbolTree* lhs);
 void not(SymbolTree* res, SymbolTree* lhs);
 void memacess(SymbolTree* res, SymbolTree* lhs);
 void memacessc(SymbolTree* res, SymbolTree* lhs);
-
+void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
+void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg);
+void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
+void notequalcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg);
 
 #endif

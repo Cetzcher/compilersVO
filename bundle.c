@@ -11,5 +11,5 @@ int main() {
     *addr2 = 200; 
     printf("addr1: %p, val: %lld\n", addr1, *addr1);
     printf("addr2: %p, val: %lld\n", addr2, *addr2);
-    printf("calling f with f(addr1, addr) res = %lld\n", f(addr1, addr2));
+    printf("calling f with f(1, 2) res = %lld\n", f(1, 2));
 }

@@ -13,6 +13,7 @@ reginfo r9 ;
 reginfo r8;
 reginfo r10;
 reginfo r11;
+short lablecount = 0;
 
 void initregs() {
     rax.isfree = 1; rax.name = "rax";
@@ -83,5 +84,25 @@ reginfo* getTempReg() {
     return NULL;
 }
 
+char* createLable() {
+    int numlen = (lablecount / 10) + 1;
+    // we use __LAB{num}\0  => 5 + numlen + 1 characters
+    const int buffersize = (5 + numlen + 1);
+    char* name = malloc(buffersize * sizeof(char));
+    snprintf(name, buffersize, "__LAB%d", lablecount);
+    lablecount++;
+    return name;
+}
 
 
+void emit(char* instr, reginfo* src, reginfo* dest) {
+    printf("\t%s %%%s, %%%s\n", instr, src->name, dest->name);
+}
+
+void emit_movq(reginfo* src, reginfo* dest) {
+    emit("movq", src, dest);
+}
+
+void emit_const_movq(long long val, reginfo* dest) {
+    printf("\tmovq $%lld, %%%s\n", val, dest->name);
+}
