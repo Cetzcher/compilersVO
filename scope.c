@@ -324,8 +324,6 @@ SymbolTree* validate2(SymbolTree* tree) {
     if(tree->count <= 1)
         return tree;
 
-    printf(" **** validate called \n");
-    debugSymTree(tree, 1);
 
     for(int i = 0; i < tree->count - 1; i++) {
         SymbolTree* current = tree->children[i];
@@ -375,15 +373,11 @@ SymbolTree* validate(SymbolTree* tree) {
 void hookVars(SymbolTree* tree, SymbolTree* currentSymbol) {
     if(currentSymbol == NULL)
         criticalFailure(4, "currentSymbol is null, this should not happen in hookVars()\n");
-    printf("trying to hook: %s\n", currentSymbol->var);
     SymbolTree* link = lookupInternal(tree, currentSymbol->var);
     if(link != NULL){
-        printf("Found link for: %s\n", currentSymbol->var);
-        printf("link Type %d\n", link->type);
         // check to see if our found link is a variable or a parameter
         // if so we link them.
         if(link->type == Variable || link->type == Param) {
-            printf("** attempting to link: %s\n", link->var);
             if(currentSymbol->link == NULL) // only link if they have not been linked yet
                 currentSymbol->link = link;
         } else if(currentSymbol->type == Loop) {

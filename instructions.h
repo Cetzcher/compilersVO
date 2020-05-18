@@ -27,6 +27,10 @@ void finalize(SymbolTree* node);
 void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
+
+void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void imaddc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
+
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
 void mulc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
 void mulcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg );

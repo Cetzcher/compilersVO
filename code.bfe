@@ -29,8 +29,12 @@ const: OP_NOT(const)            # 0 #   bnode->value = ~(L(bnode)->value);
 const: OP_LTEQ(const, const)    # 0 #   bnode->value = (L(bnode)->value <= R(bnode)->value) ? -1 : 0; 
 const: OP_HASH(const, const)    # 0 #   bnode->value = (L(bnode)->value != R(bnode)->value) ? -1 : 0;
 
+im: OP_PLUS(reg, const)   # 0 # imadd(UNPACK_3);
+im: OP_PLUS(im, const)    # 0 # imaddc(UNPACK_3);
+
 reg: OP_PLUS(reg, reg)    # 2 # add(UNPACK_3);
 reg: OP_PLUS(reg, const)  # 1 # addc(UNPACK_3);
+reg: OP_PLUS(im, im)      # 1 # 
 reg: OP_PLUS(const, reg)  # 1 # addcr(UNPACK_3);
 
 reg: OP_MULT(reg, reg)    # 2 # mul(UNPACK_3);

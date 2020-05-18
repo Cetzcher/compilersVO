@@ -34,7 +34,7 @@
 @attributes {long value; } number
 @attributes { SymbolTree* sym;} id LoopHead CallStart
 @attributes {SymbolTree* op;} BinaryOperator Unary UnaryList 
-@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall Args ArgsTrailed CallArgsTrailed 
+@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall Args ArgsTrailed CallArgsTrailed CompareExpr ProductExpr SumExpr AndExpr
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
 @traversal @preorder codegen
@@ -151,13 +151,6 @@ Stmt: TVAR id assignment Expression    ';'
 
 IfExprHead: TIF Expression TTHEN;
 LoopHead: id ':' TLOOP;
-BinaryOperator: 
-    '+'             @{ @i @BinaryOperator.op@ = opnode(OP_PLUS, NULL); @}
-    | lessThan      @{ @i @BinaryOperator.op@ = opnode(OP_LTEQ, NULL); @}
-    | '#'           @{ @i @BinaryOperator.op@ = opnode(OP_HASH, NULL); @}
-    | TAND          @{ @i @BinaryOperator.op@ = opnode(OP_AND, NULL); @}
-    | '*'           @{ @i @BinaryOperator.op@ = opnode(OP_MULT, NULL); @}
-    ;
 
 Unary: 
     TNOT    @{ @i @Unary.op@ = opnode(OP_NOT, NULL); @} 
@@ -171,14 +164,33 @@ UnaryList: Unary
     @{ @i @UnaryList.op@ = oplist(@UnaryList.1.op@, @Unary.op@); @}
     ;
 
-PrefixTerm: 
-    UnaryList Term                              @{ @i @PrefixTerm.ids@ = exprnode(@Term.ids@, @UnaryList.op@, NULL); @} 
-    | Term
+PrefixTerm: UnaryList Term                              @{ @i @PrefixTerm.ids@ = exprnode(@Term.ids@, @UnaryList.op@, NULL); @} 
     ;
+
+SumExpr: Term '+' Term @{ @i @SumExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_PLUS, NULL), @Term.1.ids@); @}
+    | SumExpr '+' Term @{ @i @SumExpr.ids@ = exprnode(@SumExpr.1.ids@, opnode(OP_PLUS, NULL), @Term.ids@); @}
+    ;
+
+ProductExpr: Term '*' Term @{ @i @ProductExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_MULT, NULL), @Term.1.ids@); @}
+    | ProductExpr '*' Term @{ @i @ProductExpr.ids@ = exprnode(@ProductExpr.1.ids@, opnode(OP_MULT, NULL), @Term.ids@); @}
+    ;
+
+AndExpr: Term TAND Term  @{ @i @AndExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_MULT, NULL), @Term.1.ids@); @} 
+    | AndExpr TAND Term  @{ @i @AndExpr.ids@ = exprnode(@AndExpr.1.ids@, opnode(OP_MULT, NULL), @Term.ids@); @}
+    ;
+
+CompareExpr: Term lessThan Term @{ @i @CompareExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_LTEQ, NULL), @Term.1.ids@); @}
+    | Term '#' Term             @{ @i @CompareExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_HASH, NULL), @Term.1.ids@); @}
+    ;
+
 
 Expression:                                     
     PrefixTerm
-    | Expression BinaryOperator Term           @{ @i @Expression.ids@ = exprnode(@Expression.1.ids@, @BinaryOperator.op@, @Term.ids@); @}
+    | SumExpr
+    | ProductExpr
+    | AndExpr
+    | CompareExpr
+    | Term
     ;
 
 CallArgs: /* empty */              @{ @i @CallArgs.ids@ = metaNode(ExpressionStatement); @}

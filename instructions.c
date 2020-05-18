@@ -108,6 +108,16 @@ void add(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     __binop("ADDQ", res, lhs, rhs);
 }
 
+void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    // lhs is reg
+    // rhs is constant
+    
+}
+
+void imaddc(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+
+}
+
 void addc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
     reginfo* target = getTempReg();
