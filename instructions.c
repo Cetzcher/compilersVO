@@ -25,17 +25,17 @@ void init_codegen(SymbolTree* rootlevel) {
 }
 
 void declare_func(SymbolTree* function) {
-    printf("\n\t##    Function      ##\n");
-    printf("%s:\n", function->var);
-    printf("\t# %s (no. of params: %d, declared vars: %d)\n", function->var, function->parameters, function->declaredVars);
+    printf("%s: ##    Function     (no. of params: %d, declared vars: %d) ##\n", function->var, function->parameters, function->declaredVars);
     const int reservedSpace = function->declaredVars;
     // reserve space on the stack
     // save call frame
+    // make room for local variables
     printf("\tPUSHQ %s \t\t# make room for basepointer\n", basepointer);
     printf("\tMOVQ %s, %s \t# set frame pointer\n", stackpointer, basepointer);
-    // make room for local variables
-    if(reservedSpace)
+    printf("\tPUSHQ %%rbx\n");
+    if(reservedSpace) {
         printf("\tSUBQ $%d, %s \t\t# reserve space for %d vars\n", (reservedSpace) * 8, stackpointer, reservedSpace);
+    }
     // move params onto stack
     for(int i = 0; i < function->parameters; i++) {
         // functions children 0 to 'parameters' will be our arguments as nodes
@@ -51,21 +51,20 @@ void declare_func(SymbolTree* function) {
 
 void finalize(SymbolTree* node) {
     // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
-    // TOOD: this breaks if we just return arg;
     node = node->link == NULL ? node : node->link;
     reginfo* rax = getRAX();
     if(SYMREG(node) == rax)
         printf("\t#value is already in rax\n");
     else
         emit_movq(SYMREG(node), getRAX());
+    
 }
 
 void generate_return() {
+    printf("\tPOPQ %%rbx\n");
     printf("\tleave \t\t\t# leave function  \n");
     printf("\tret\n");
 }
-
-
 
 // perform binary operation, expects lhs and rhs to be linked
 // either uses a temp register or uses the same register
@@ -108,15 +107,7 @@ void add(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     __binop("ADDQ", res, lhs, rhs);
 }
 
-void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
-    // lhs is reg
-    // rhs is constant
-    
-}
 
-void imaddc(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
-
-}
 
 void addc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
@@ -261,3 +252,64 @@ void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
 }
 
 void notequalcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) { notequalc(res, arg, constant); }
+
+char* __chooseInstr(int op) {
+    switch (op) {
+        case OP_PLUS:
+            return "addq";
+        case OP_AND: 
+            return "andq";
+        case OP_MULT:
+            return "imulq";
+        default:
+            return NULL;
+    }
+}
+
+void imtoreg(SymbolTree* reg, SymbolTree* im) {
+    reginfo* target = getTempReg();
+    char* instr = __chooseInstr(reg->op);
+    emit_const_movq(reg->value, target);
+    emit(instr, reg->assignedRegister, target);
+    reg->assignedRegister->isfree = 1;
+    im->assignedRegister->isfree = 1;
+    target->isfree = 0;
+    reg->assignedRegister = target;
+}
+
+
+void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    // lhs is im
+    // rhs is const
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    res->value = lhs->value + rhs->value;
+}
+
+void immultreg(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    // lhs is reg
+    // rhs is const
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    res->value = rhs->value;
+}
+
+void immult(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    res->value = lhs->value * rhs->value;
+}
+
+void imand(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    res->value = lhs->value & rhs->value;
+}
+
+void imandreg(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    // lhs is reg
+    // rhs is const
+    LINK_UNARY
+    res->assignedRegister = lhs->assignedRegister;
+    res->value = rhs->value;
+}

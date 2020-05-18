@@ -145,7 +145,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
-        @codegen { debugSymTree(@Expression.ids@, 0); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } }
+        @codegen { debugSymTree(@Expression.ids@, 0); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
     @}
     ;
 

@@ -2399,7 +2399,7 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { { debugSymTree((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 0); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); } }
+if (yyyCond(0) != yyyPass) { { debugSymTree((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 0); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
     }
 				break;
 					}
@@ -3680,9 +3680,9 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 "statements",0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+0,"n",0,0,0,
 0,0,"t",0,0,
-0,0,"y",0,0,
+"tree",0,"y",0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3753,7 +3753,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,"single2",
+0,"printf",0,0,"single2",
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3839,7 +3839,7 @@ char *yyyStringTab[] = {
 0,"If",0,0,0,
 0,0,0,0,"Expression",
 0,0,0,0,0,
-0,0,"id","param",0,
+0,0,"id","param","be",
 0,0,0,0,0,
 0,0,"func",0,0,
 0,0,"context","if","HASH",
@@ -3872,7 +3872,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+"else",0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3883,7 +3883,7 @@ char *yyyStringTab[] = {
 0,0,0,"CallArgsTrailed",0,
 0,0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+"cannot",0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,"burm",
 0,0,0,"TVAR",0,
@@ -3892,7 +3892,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 "NOT",0,0,0,0,
-0,0,0,0,0,
+"derived",0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,

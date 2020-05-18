@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_SCOPE 1
+#define DEBUG_SCOPE 0
 #define SEMANTIC_VALIDATE
 
 void criticalFailure(int exitCode, char* msg) {

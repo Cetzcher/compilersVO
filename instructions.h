@@ -27,10 +27,6 @@ void finalize(SymbolTree* node);
 void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
-
-void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
-void imaddc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
-
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
 void mulc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
 void mulcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg );
@@ -47,5 +43,14 @@ void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg);
 void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
 void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant);
 void notequalcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg);
+
+// im functions.
+
+void imtoreg(SymbolTree* reg, SymbolTree* im);
+void imadd(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void immult(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void immultreg(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void imand(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
+void imandreg(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs);
 
 #endif
