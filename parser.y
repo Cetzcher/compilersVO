@@ -85,7 +85,7 @@ StmtList: /* empty */ @{ @i @StmtList.context@ = metaNode(ExpressionStatement); 
         @i @StmtList.context@ = statements(@Stmt.context@, NULL);
         @i @Stmt.inherited@ = @StmtList.context@; 
     @}
-    | StmtList Stmt
+    | StmtList Stmt 
     @{ 
         @i @StmtList.context@ = statements(@StmtList.1.context@, @Stmt.context@);
         @i @Stmt.inherited@ = @StmtList.context@;
@@ -117,6 +117,7 @@ Stmt: TVAR id assignment Expression    ';'
     | LoopHead StmtList TEND ';'
     @{
         @i @Stmt.context@ = addChildren(loopNode(@LoopHead.sym@), @StmtList.context@);
+        @t checkLoopUnique(@LoopHead.sym@);
     @}
     | TBREAK id ';'
     @{
@@ -144,7 +145,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
-        @codegen { debugSymTree(@Expression.ids@, 0); burm_label(@Expression.ids@); burm_reduce(@Expression.ids@, 1); generate_return(); }
+        @codegen { debugSymTree(@Expression.ids@, 0); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } }
     @}
     ;
 
@@ -194,7 +195,7 @@ CallArgsTrailed: Expression ','         @{ @i @CallArgsTrailed.ids@ = @Expressio
 MemAcess: '*' Term 
     ;
 
-Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
+Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = /*callNode(@id.sym@, @CallArgs.ids@)*/ addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
     ;
 
 

@@ -27,7 +27,7 @@ void init_codegen(SymbolTree* rootlevel) {
 void declare_func(SymbolTree* function) {
     printf("\n\t##    Function      ##\n");
     printf("%s:\n", function->var);
-    printf("\t# %s (varcount %d, parmcount %d)\n", function->var, function->parameters, function->declaredVars);
+    printf("\t# %s (no. of params: %d, declared vars: %d)\n", function->var, function->parameters, function->declaredVars);
     const int reservedSpace = function->declaredVars;
     // reserve space on the stack
     // save call frame
@@ -81,14 +81,17 @@ void __binop(char* op, SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     } else {
         emit(op, SYMREG(lhs), SYMREG(rhs));
         res->assignedRegister = rhs->assignedRegister;
+        printf("\t# target == NULL");
     }
     lhs->assignedRegister->isfree = 1;
 }
 
 void __unaryop(char* op, SymbolTree* res, SymbolTree* lhs) {
     // TODO: since this modifies registers in place it could break lots of stuff!!!
-    res->assignedRegister = lhs->assignedRegister;
-    printf("\t%s %%%s\n", op, REG(lhs));
+    reginfo* target = getTempReg();
+    emit_movq(SYMREG(lhs), target);
+    printf("\t%s %%%s\n", op, target->name);
+    __freeandset(lhs, NULL, res, target);
 }
 
 void __freeandset(SymbolTree* lhs, SymbolTree* rhs, SymbolTree* res, reginfo* target) {
@@ -107,35 +110,28 @@ void add(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
 
 void addc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
-    printf("\tADDQ $%d, %%%s\n", constant->value, REG(lhs));
-    res->assignedRegister = lhs->assignedRegister;
+    reginfo* target = getTempReg();
+    emit_movq(SYMREG(lhs), target); 
+    if(constant->value != 0)
+        printf("\tADDQ $%lld, %%%s\n", constant->value, target->name);
+    __freeandset(lhs, NULL, res, target);
 }
+
 void addcr(SymbolTree* res,  SymbolTree* constant, SymbolTree* arg) { addc(res, arg, constant); }
 
 
 
 void mul(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     LINK_VARS
-    // we move left into rax
-    // we then mult with right and free both registers again
-    reginfo* rax = getRAX();
-    emit_movq(SYMREG(lhs), rax);
-    printf("\tMULQ %%%s\n", rhs->assignedRegister->name);
-    __freeandset(lhs, rhs, res, rax);
+    __binop("imulq", res, lhs, rhs);
 }
 
 void mulc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
-    reginfo* r =  getRAX();
-    emit_const_movq(constant->value, getR11());
-    if(r != lhs->assignedRegister) {
-        // lhs is not in rax
-        emit_movq(SYMREG(lhs), r);
-        lhs->assignedRegister->isfree = 1;
-    }
-    r->isfree = 0; 
-    printf("\tMULQ %%r11\n");
-    res->assignedRegister = r;
+    reginfo* target = getTempReg();
+    emit_movq(SYMREG(lhs), target); 
+    printf("\timulq $%lld, %%%s\n", constant->value, target->name);
+    __freeandset(lhs, NULL, res, target);
 }
 
 void mulcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg ) { mulc(res, arg, constant); }
@@ -147,9 +143,12 @@ void and(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
 
 void andc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
-    printf("\tANDQ $%d, %%%s\n", constant->value, REG(lhs));
-    res->assignedRegister = lhs->assignedRegister;
+    reginfo* target = getTempReg();
+    emit_movq(SYMREG(lhs), target);
+    printf("\tANDQ $%d, %%%s\n", constant->value, target->name);
+    __freeandset(lhs, NULL, res, target);
 }
+
 void andcr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg ) { andc(res, arg, constant); }
 
 void minus(SymbolTree* res, SymbolTree* lhs) {

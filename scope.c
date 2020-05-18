@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_SCOPE 0
+#define DEBUG_SCOPE 1
 #define SEMANTIC_VALIDATE
 
 void criticalFailure(int exitCode, char* msg) {
@@ -75,6 +75,13 @@ SymbolTree* metaNode(MetaType type) {
     }
 }
 
+SymbolTree* callNode(SymbolTree* idnode, SymbolTree* args) {
+    SymbolTree* sym = _create(5, Call, NULL);
+    addChild(sym, idnode);
+    addChildrenMode(sym, args, FALSE);
+    return sym;
+}
+
 SymbolTree* returnNode() {
     return metaNode(Return);
 }
@@ -139,16 +146,21 @@ SymbolTree* param(SymbolTree* before, SymbolTree* cur) {
         SymbolTree* parent = single("!meta");
         parent->parameters = cur->parameters;
         parent->memref = cur->memref;
+        parent->type = Param;
+        cur->type = Param;
         return addChild(parent, cur);  // create a parent and return that instead
     } 
     // before will now be the parent elem
     cur->parameters = ++before->parameters;
     cur->memref = ++before->memref;
+    cur->type = Param;
+    before->type = Param;
     return addChild(before, cur);   // add this as a child
 }
 
 SymbolTree* decl(SymbolTree* node) {
     node->declaredVars = 1;
+    node->type = Variable;
     return node;
 }
 
@@ -172,6 +184,7 @@ SymbolTree* num(long val) {
 
 SymbolTree* ID(SymbolTree* sym) {
     sym->op = OP_VAR;
+    sym->type = Variable;
     return sym;
 }
 
@@ -261,7 +274,7 @@ void debugSymTree(SymbolTree* tree, int depth) {
     else if (tree->op == OP_VAR)
         printf("var");
     else
-        printf("declared vars: %d", tree->declaredVars);
+        printf("Type: (%d)", tree->type);
     printf("\n");
     for(int i = 0; i < tree->count; i++) {
         debugSymTree(tree->children[i], depth + 1);
@@ -286,16 +299,17 @@ SymbolTree* lookupInternal(SymbolTree* tree, variable var) {
         //printf("%s has not been declared\n", var);
         //exit(3);
         return NULL;
-    } else {
-        if(strcmp(var, tree->parent->var) == 0)
-            return tree->parent; // parent is node we are looking for
-    }
+    } 
+
     for(int i = 0; i < tree->childIndex; i++) {
         variable cur = tree->parent->children[i]->var;
         if(strcmp(cur, var) == 0) {
             return tree->parent->children[i];     // we have found the node so we stop looking for it.
         }
     }
+    // we check the parent last since it is always to the "left" of the siblings in code
+    if(strcmp(var, tree->parent->var) == 0)
+        return tree->parent; // parent is node we are looking for
     return lookupInternal(tree->parent, var);
 }
 // looks for var in the tree above and to the left i.e occouring before the node of tree
@@ -306,9 +320,12 @@ boolean lookup_node(SymbolTree* tree, variable var) {
 
 // validates the current level to check if any variable is declared twice
 // retruns the tree if successful or exit(3) otherwise 
-SymbolTree* validate(SymbolTree* tree) {
+SymbolTree* validate2(SymbolTree* tree) {
     if(tree->count <= 1)
         return tree;
+
+    printf(" **** validate called \n");
+    debugSymTree(tree, 1);
 
     for(int i = 0; i < tree->count - 1; i++) {
         SymbolTree* current = tree->children[i];
@@ -316,7 +333,7 @@ SymbolTree* validate(SymbolTree* tree) {
         for(int j = (i + 1); j < tree->count; j++) {
             SymbolTree* other = tree->children[j];
             variable cur = other->var;
-            if(strcmp(needle, cur) == 0 && other->type == None && current->type == None) {
+            if(strcmp(needle, cur) == 0 && (other->type == Variable || other->type == Param) && (current->type == Variable || current->type == Param)) {
                 printf("%s was redeclared! \n", needle, cur);
                 criticalNoMSG(3);
             }
@@ -326,28 +343,74 @@ SymbolTree* validate(SymbolTree* tree) {
     return tree;
 }
 
+// we want to check each var and see if they already occour in the tree above 
+// to do that we use a set and perform breadth first search
+// when insert is false then the variable occours twice in the main tree and we throw it away
+SymbolTree* validate(SymbolTree* tree) {
+    // if we have found a leaf i.e. count = 0
+    // then we search for this node up in the tree
+    if(tree->count == 0) {
+            // check if the node we are looking at is a var node
+            if(tree->type == Variable || tree->type == Param) {
+                // if it is look it up in the tree above
+                SymbolTree* lookup = lookupInternal(tree, tree->var);
+                if(lookup != NULL) {
+                    if(lookup->type != Funcdef) {
+                        printf("**  %s was redeclared at line %d\n", tree->var, tree->line);
+                        criticalNoMSG(3);
+                    }
+                } 
+            }
+    } else {
+        for(int i = 0; i < tree->count; i++) {
+            validate(tree->children[i]);
+        }
+    }
+
+    return tree;
+}
+
+
+// links current symbol in tree if found otherwise throws various errors
+void hookVars(SymbolTree* tree, SymbolTree* currentSymbol) {
+    if(currentSymbol == NULL)
+        criticalFailure(4, "currentSymbol is null, this should not happen in hookVars()\n");
+    printf("trying to hook: %s\n", currentSymbol->var);
+    SymbolTree* link = lookupInternal(tree, currentSymbol->var);
+    if(link != NULL){
+        printf("Found link for: %s\n", currentSymbol->var);
+        printf("link Type %d\n", link->type);
+        // check to see if our found link is a variable or a parameter
+        // if so we link them.
+        if(link->type == Variable || link->type == Param) {
+            printf("** attempting to link: %s\n", link->var);
+            if(currentSymbol->link == NULL) // only link if they have not been linked yet
+                currentSymbol->link = link;
+        } else if(currentSymbol->type == Loop) {
+            // if we find a loop ie a label instead we quit.
+            printf("Error: %s is a label\n", currentSymbol->var);
+            criticalNoMSG(3);
+        }
+    } else {
+        // if we cannot find a link the user has not declared the variable beforehand so we quit.
+        printf("Error: %s use before declartation @line:%d\n", currentSymbol->var, currentSymbol->line);
+        criticalNoMSG(3);
+    }
+}
 
 SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
-    // breadth first search sub 
-    if(sub->var != NULL) {
-        SymbolTree* link = lookupInternal(tree, sub->var);
-        if(link != NULL)
-            sub->link = link;   // we also need to check the root
+    if(sub == NULL)
+        criticalFailure(4, "Subtree is null, this should not happen in checkSubtreeDeclared()\n");
+    if(sub->type == Variable) {
+        hookVars(tree, sub);    // check root level
     }
+    // iterate every child of sub if they are a variable then hook it otherwise
+    // recurse into in breadth-first manner.
     for(int i = 0; i < sub->count; i++) {
         SymbolTree* currentSymbol = sub->children[i];
-        if(currentSymbol->var != NULL) {
-            // we are looking at a var or lable
-            SymbolTree* key = lookupInternal(tree, currentSymbol->var);
-            if(key == NULL) {
-                printf("Error: %s use before declartation @line:%d\n", currentSymbol->var, currentSymbol->line);
-                criticalNoMSG(3);
-            } else {
-                currentSymbol->link = key;
-            }
+        if(currentSymbol->type == Variable) {
+            hookVars(tree, currentSymbol);
         } else {
-            // we have found some other node, eventually an op node 
-            // we recurse into the subtree of that
             checkSubtreeDeclared(tree, currentSymbol);
         }
     }
@@ -357,21 +420,27 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
 void checkDeclared(SymbolTree* tree, variable var) {
     if(var == NULL)
             return;
-    boolean res = lookup_node(tree, var);
-    if(!res) {
+    SymbolTree* sym = lookupInternal(tree, var);
+    if(sym == NULL) {
         // child[i] is not declared
         printf("Error: %s use before declartation\n", var);
         criticalNoMSG(3);
-    } 
+    } else if(sym->type == Loop || sym->type == Loopref) {
+        printf("Error: %s is used as a Label\n", var);
+        criticalNoMSG(3);
+    }
 }
 
 void checkLooprefCorrect(SymbolTree* node) {
     variable lookingfor = node->var;
+    SymbolTree* init = node;
     int lineno = node->line;
     for(; node->parent != NULL; node = node->parent) {
         if(node->type == Loop) {
-            if(strcmp(lookingfor, node->var) == 0)
+            if(strcmp(lookingfor, node->var) == 0) {
+                init->link = node;  // link the label
                 return; // we have found a loop and its labels do match.
+            }
         }
     }
     // we have not found what we are looking for so we throw a semantic error
@@ -379,4 +448,12 @@ void checkLooprefCorrect(SymbolTree* node) {
     criticalNoMSG(3);
 }
 
+void checkLoopUnique(SymbolTree* loop) {
+    // check that the loop is unique if not we fail
+    SymbolTree* lookup = lookupInternal(loop, loop->var);
+    if(lookup != NULL) {
+        printf("Loop name is not availible %s\n", loop->var);
+        criticalNoMSG(3);
+    }
+}
 

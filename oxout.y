@@ -223,7 +223,7 @@ yyyGenIntNode();
 yyyRSU(13,1,2,5);
 yyyGenIntNode();
 yyyAdjustINRC(yyyRCIL+45,yyyRCIL+51);/*yyyPrune(13);*/}}
-    | StmtList Stmt
+    | StmtList Stmt 
     {if(yyyYok){
 yyyRSU(14,2,2,5);
 yyyGenIntNode();
@@ -1043,7 +1043,7 @@ case 19:  /***yacc rule 19***/
     switch (yyywa) {
     case 0:
  (((yyyP5)(((char *)yyyRSTopN)+yyyGNSz))->context) = addChildren(loopNode((((yyyP2)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->sym)), (((yyyP5)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->context));
-        break;
+            break;
     }
   break;
   case 1:  /**/
@@ -1423,7 +1423,7 @@ case 48:  /***yacc rule 48***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = addChildrenMode(newTree("!Call"), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids), FALSE);     break;
+ (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = /*callNode(@id.sym@, @CallArgs.ids@)*/ addChildrenMode(newTree("!Call"), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids), FALSE);     break;
     }
   break;
   case 1:  /**/
@@ -2072,9 +2072,12 @@ case 19:
 		case 0:
 			switch(yyyPass)	{
 				case 0:
-yyyRL = 0;
+yyyRL = 0;yyySetCond(0)
+
 				case 1:
 
+if (yyyCond(0) != yyyPass) { checkLoopUnique((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym));
+    }
 				break;
 					}
 		break;
@@ -2216,7 +2219,7 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { { debugSymTree((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 0); burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids)); burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); }
+if (yyyCond(0) != yyyPass) { { debugSymTree((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 0); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); } }
     }
 				break;
 					}
@@ -3500,7 +3503,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
-0,0,0,"oplist","FuncList",
+"checkLoopUnique",0,0,"oplist","FuncList",
 0,0,0,0,"StmtList",
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3516,7 +3519,7 @@ char *yyyStringTab[] = {
 0,0,"id","param",0,
 0,0,0,0,0,
 0,0,"func",0,0,
-0,0,"context","HASH",0,
+0,0,"context","if","HASH",
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,

@@ -21,7 +21,9 @@ enum MType {
     Return = 7,
     Funcdef = 8,
     Param = 9,
-    OpNode = 10
+    OpNode = 10,
+    Call = 11,
+    Variable = 12
 };
 
 typedef enum MType MetaType; 
@@ -102,4 +104,6 @@ void checkDeclared(SymbolTree* tree, variable var);
 // this function uses node->var for comparison
 void checkLooprefCorrect(SymbolTree* node);
 
+
+void checkLoopUnique(SymbolTree* loop);
 #endif

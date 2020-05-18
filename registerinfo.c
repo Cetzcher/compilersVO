@@ -77,10 +77,12 @@ reginfo* getR11() {
 }
 
 reginfo* getTempReg() {
-    if(r10.isfree)
-        return &r10;
+    if(rax.isfree)
+        return &rax;
     else if(rbx.isfree)
         return &rbx;        // need to save rbx at some point
+    else if(r10.isfree)
+        return &r10;
     return NULL;
 }
 
