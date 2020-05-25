@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define DEBUG_SCOPE 0
+#define DEBUG_SCOPE 1
 #define SEMANTIC_VALIDATE
 
 void criticalFailure(int exitCode, char* msg) {
@@ -259,9 +259,9 @@ void debugSymTree(SymbolTree* tree, int depth) {
         return;
     inset(depth);
     if(tree->var)
-        printf("--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
+        printf("#--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
     else
-        printf("--no name  ");
+        printf("#--no name  ");
 
     if(tree->type == Loop)
         printf(" (LOOP) ");
@@ -377,14 +377,14 @@ void hookVars(SymbolTree* tree, SymbolTree* currentSymbol) {
     if(link != NULL){
         // check to see if our found link is a variable or a parameter
         // if so we link them.
-        if(link->type == Variable || link->type == Param) {
-            if(currentSymbol->link == NULL) // only link if they have not been linked yet
-                currentSymbol->link = link;
-        } else if(currentSymbol->type == Loop) {
-            // if we find a loop ie a label instead we quit.
+        if(link->type == Loop) {
             printf("Error: %s is a label\n", currentSymbol->var);
             criticalNoMSG(3);
         }
+        if(link->type == Variable || link->type == Param) {
+            if(currentSymbol->link == NULL) // only link if they have not been linked yet
+                currentSymbol->link = link;
+        } 
     } else {
         // if we cannot find a link the user has not declared the variable beforehand so we quit.
         printf("Error: %s use before declartation @line:%d\n", currentSymbol->var, currentSymbol->line);

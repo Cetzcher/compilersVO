@@ -175,8 +175,8 @@ ProductExpr: Term '*' Term @{ @i @ProductExpr.ids@ = exprnode(@Term.0.ids@, opno
     | ProductExpr '*' Term @{ @i @ProductExpr.ids@ = exprnode(@ProductExpr.1.ids@, opnode(OP_MULT, NULL), @Term.ids@); @}
     ;
 
-AndExpr: Term TAND Term  @{ @i @AndExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_MULT, NULL), @Term.1.ids@); @} 
-    | AndExpr TAND Term  @{ @i @AndExpr.ids@ = exprnode(@AndExpr.1.ids@, opnode(OP_MULT, NULL), @Term.ids@); @}
+AndExpr: Term TAND Term  @{ @i @AndExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_AND, NULL), @Term.1.ids@); @} 
+    | AndExpr TAND Term  @{ @i @AndExpr.ids@ = exprnode(@AndExpr.1.ids@, opnode(OP_AND, NULL), @Term.ids@); @}
     ;
 
 CompareExpr: Term lessThan Term @{ @i @CompareExpr.ids@ = exprnode(@Term.0.ids@, opnode(OP_LTEQ, NULL), @Term.1.ids@); @}

@@ -1339,7 +1339,7 @@ case 37:  /***yacc rule 37***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = exprnode((((yyyP4)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->ids), opnode(OP_MULT, NULL), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids));     break;
+ (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = exprnode((((yyyP4)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->ids), opnode(OP_AND, NULL), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids));     break;
     }
   break;
   case 1:  /**/
@@ -1357,7 +1357,7 @@ case 38:  /***yacc rule 38***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = exprnode((((yyyP4)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->ids), opnode(OP_MULT, NULL), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids));     break;
+ (((yyyP4)(((char *)yyyRSTopN)+yyyGNSz))->ids) = exprnode((((yyyP4)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->ids), opnode(OP_AND, NULL), (((yyyP4)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids));     break;
     }
   break;
   case 1:  /**/
@@ -3682,7 +3682,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,"n",0,0,0,
 0,0,"t",0,0,
-"tree",0,"y",0,0,
+"tree","AND","y",0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,

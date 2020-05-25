@@ -194,7 +194,7 @@ void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     char* lab = createLable();
     char* comparefin = createLable();
     printf("\tcmp %%%s, %%%s\n", REG(rhs), REG(lhs));   
-    printf("\tjge %s\n", lab);
+    printf("\tjg %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
     printf("\t%s:\n", lab);
@@ -207,46 +207,59 @@ void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     reginfo* target = getTempReg();
     char* lab = createLable();
     char* comparefin = createLable();
-    printf("\tcmp $%lld, %%%s\n", constant->assignedRegister, REG(lhs));   
-    printf("\tjge %s\n", lab);
-    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\tcmp $%lld, %%%s\n", constant->value, REG(lhs));   
+    printf("\tjg %s\n", lab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
     printf("\t%s:\n", lab);
-    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\tMOVQ $0, %%%s\n", target->name);
     printf("\t%s:\n", comparefin);
     __freeandset(lhs, NULL, res, target);
 }
 
 void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
-    lessthanc(res, arg, constant);   
     // we need to invert our result so we generate a NOTQ instruction afterwards
-    printf("\tnotq %%%s\n", res->assignedRegister->name);
+    arg = arg->link == NULL ? arg : arg->link;
+    reginfo* target = getTempReg();
+    char* lab = createLable();
+    char* comparefin = createLable();
+
+    printf("\tcmp $%lld, %%%s\n", constant->value, REG(arg));   
+    printf("\tjl %s\n", lab);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\tjmp %s\n", comparefin);
+    printf("\t%s:\n", lab);
+    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\t%s:\n", comparefin);
+    __freeandset(arg, NULL, res, target);
 }
 
 void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    LINK_VARS
     reginfo* target = getTempReg();
     char* eqlab = createLable();
     char* aftercompare = createLable();
-    printf("\ttest %%%s, %%%s\n", REG(lhs), REG(rhs));
+    printf("\tcmp %%%s, %%%s\n", REG(lhs), REG(rhs));
     printf("\tje %s\n", eqlab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercompare);
     printf("\t%s:\n", eqlab);
     printf("\tMOVQ $0, %%%s\n", target->name);
-    printf("\t%s:\n", target->name);
+    printf("\t%s:\n", aftercompare);
     __freeandset(lhs, rhs, res, target);
 }
+
 void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
     reginfo* target = getTempReg();
     char* eqlab = createLable();
     char* aftercomp = createLable();
-    printf("\ttest $%lld, %%%s\n", constant->value, REG(lhs));
+    printf("\tcmp $%lld, %%%s\n", constant->value, REG(lhs));
     printf("\tje %s\n", eqlab);
-    printf("\tMOVQ $0, %%%s\n", target->name);
+    printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercomp);
     printf("\t%s:\n", eqlab);
-    printf("\tMOVQ $-1, %%%s\n", target->name);
+    printf("\tMOVQ $0, %%%s\n", target->name);
     printf("\t%s:\n", aftercomp);
     __freeandset(lhs, NULL, res, target);
 }
