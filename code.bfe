@@ -17,7 +17,7 @@
 %term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11 OP_MEMACESS = 12
 %%
 
-expr: const                     # 0 #   printf("\tMOVQ $%d, %%rax\n", bnode->value);
+expr: const                     # 0 #   finalizec(bnode);
 expr: reg                       # 0 #   finalize(bnode);
 
 const: OP_NUM                   # 0 # 

@@ -86,6 +86,17 @@ reginfo* getTempReg() {
     return NULL;
 }
 
+reginfo* memreg(int pos) {
+    reginfo* reg = malloc(sizeof(reginfo));
+    int offset = 8 * (pos + 1);
+    int numdigits = (offset / 10) + 1;
+    char* buf;
+    snprintf(buf, numdigits + 8, "-%d(%%rbp)", offset);
+    reg->name = buf;
+    reg->isfree = 0;
+    return reg;
+}
+
 char* createLable() {
     int numlen = (lablecount / 10) + 1;
     // we use __LAB{num}\0  => 5 + numlen + 1 characters
@@ -98,7 +109,18 @@ char* createLable() {
 
 
 void emit(char* instr, reginfo* src, reginfo* dest) {
-    printf("\t%s %%%s, %%%s\n", instr, src->name, dest->name);
+    char* sname = src->name;
+    char* dname = dest->name;
+    printf("\t%s ", instr);
+    if(sname[0] == '-')
+        printf("%s, ", sname);
+    else
+        printf("%%%s, ", sname);
+    if(dname[0] == '-')
+        printf("%s", dname);
+    else
+        printf("%%%s", dname);
+    printf("\n");
 }
 
 void emit_movq(reginfo* src, reginfo* dest) {
@@ -106,5 +128,10 @@ void emit_movq(reginfo* src, reginfo* dest) {
 }
 
 void emit_const_movq(long long val, reginfo* dest) {
-    printf("\tmovq $%lld, %%%s\n", val, dest->name);
+    // TODO: remove this abomination.
+    if(dest->name[0] == '-') {
+        printf("\tmovq $%lld, %s\n", val, dest->name);
+    } else {
+        printf("\tmovq $%lld, %%%s\n", val, dest->name);
+    }
 }

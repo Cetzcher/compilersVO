@@ -10,4 +10,5 @@ clean:
 	rm y.output
 	rm y.tab.*
 	rm codea
+	rm code.c
 	rm lex.yy.c

@@ -8,6 +8,7 @@
     void yyerror(char* );
     #include "scope.h"
     #include "instructions.h"
+    #include "registerinfo.h"
     //yydebug = 1;
 %}
 
@@ -1051,7 +1052,7 @@ case 18:  /***yacc rule 18***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP5)(((char *)yyyRSTopN)+yyyGNSz))->context) = addChild(addChild(metaNode(If), (((yyyP5)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->context)), (((yyyP5)(((char *)((yyyRefN->cL)[3]))+yyyGNSz))->context));
+ (((yyyP5)(((char *)yyyRSTopN)+yyyGNSz))->context) = ifThenElse((((yyyP5)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->context), (((yyyP5)(((char *)((yyyRefN->cL)[3]))+yyyGNSz))->context));
             break;
     }
   break;
@@ -2153,16 +2154,19 @@ yyyRL = 0;yyySetCond(0)
 				case 1:
 
 if (yyyCond(0) != yyyPass) { checkSubtreeDeclared((((yyyP2)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->sym), (((yyyP4)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids));
-    }
+        }
 				break;
 					}
 		break;
 		case 1:
 			switch(yyyPass)	{
 				case 0:
-yyyRL = 0;
+yyyRL = 0;yyySetCond(0)
+
 				case 1:
 
+if (yyyCond(0) != yyyPass) { { assignMemref((((yyyP2)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->sym)); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids), 1);  }}
+    }
 				break;
 					}
 		break;
@@ -2178,17 +2182,20 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { { checkDeclared((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->parent, (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->var);   checkSubtreeDeclared((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->parent, (((yyyP4)(((char *)((yyyTSTn->cL)[2]))+yyyGNSz))->ids)); } /* we look above the pseudo node, we also validate expression */
-    }
+if (yyyCond(0) != yyyPass) { { checkDeclared((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->parent, (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym));   checkSubtreeDeclared((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->parent, (((yyyP4)(((char *)((yyyTSTn->cL)[2]))+yyyGNSz))->ids)); } /* we look above the pseudo node, we also validate expression */
+        }
 				break;
 					}
 		break;
 		case 1:
 			switch(yyyPass)	{
 				case 0:
-yyyRL = 0;
+yyyRL = 0;yyySetCond(0)
+
 				case 1:
 
+if (yyyCond(0) != yyyPass) { {instr_assignment((((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[2]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[2]))+yyyGNSz))->ids), 1);}}
+    }
 				break;
 					}
 		break;
@@ -2399,7 +2406,7 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { { debugSymTree((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 0); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
+if (yyyCond(0) != yyyPass) { { setTarget(getRAX()); if(burm_label((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids))) { burm_reduce((((yyyP4)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
     }
 				break;
 					}
@@ -3694,7 +3701,7 @@ char *yyyStringTab[] = {
 "Funcdef",0,0,0,0,
 "CallStart",0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+0,"assignMemref",0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3745,7 +3752,7 @@ char *yyyStringTab[] = {
 "'+'",0,0,"SumExpr",0,
 "label",0,0,"','",0,
 0,0,0,0,0,
-0,"'-'","MEMACESS",0,0,
+0,"'-'","getRAX","MEMACESS",0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3819,7 +3826,7 @@ char *yyyStringTab[] = {
 0,0,0,"value",0,
 0,0,0,0,0,
 0,0,0,0,"UnaryList",
-0,0,"var",0,0,
+0,0,0,0,0,
 0,"loopNode",0,0,"ArgList",
 "loopRefNode",0,0,0,0,
 "opnode",0,0,0,0,
@@ -3836,7 +3843,7 @@ char *yyyStringTab[] = {
 0,"exprnode",0,0,0,
 0,0,"ids",0,0,
 0,0,0,0,0,
-0,"If",0,0,0,
+0,0,0,0,0,
 0,0,0,0,"Expression",
 0,0,0,0,0,
 0,0,"id","param","be",
@@ -3854,7 +3861,7 @@ char *yyyStringTab[] = {
 0,0,0,"Factor",0,
 0,0,"number",0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+"setTarget",0,0,0,0,
 0,0,0,0,"TNOT",
 0,0,0,0,0,
 0,0,"Term",0,0,
@@ -3864,7 +3871,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,"yytext",0,
 0,0,0,0,0,
-0,0,0,0,0,
+0,0,"ifThenElse",0,0,
 0,"BinaryOperator",0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
@@ -3898,7 +3905,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,"checkDeclared",
-0,0,0,0,0,
+0,0,0,0,"instr",
 "checkLooprefCorrect","checkSubtreeDeclared",0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,

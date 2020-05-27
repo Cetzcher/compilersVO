@@ -23,7 +23,12 @@ enum Ops {
 void init_codegen();
 void declare_func(SymbolTree* function);
 void generate_return();
+void assignMemref(SymbolTree* node);
+void setTarget(reginfo* reg);
+void instr_assignment(SymbolTree* node);
 void finalize(SymbolTree* node);
+void finalizec(SymbolTree* node);
+
 void add(SymbolTree* res, SymbolTree* left, SymbolTree* right);
 void addc(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);
 void addcr(SymbolTree* res, SymbolTree* arg, SymbolTree* constant);

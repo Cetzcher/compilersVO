@@ -16,7 +16,7 @@ reginfo* getRBX();
 reginfo* getR11();
 reginfo* getTempReg();
 char* createLable();
-
+reginfo* memreg(int pos);
 // instructions for controlling registers are here
 void emit(char* instr, reginfo* src, reginfo* dest);
 void emit_movq(reginfo* src, reginfo* dest);

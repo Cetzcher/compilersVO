@@ -5,6 +5,7 @@
     void yyerror(char* );
     #include "scope.h"
     #include "instructions.h"
+    #include "registerinfo.h"
     //yydebug = 1;
 %}
 
@@ -97,12 +98,14 @@ Stmt: TVAR id assignment Expression    ';'
     @{ 
         @i @Stmt.context@ = decl(@id.sym@); 
         @t checkSubtreeDeclared(@id.sym@, @Expression.ids@);
+        @codegen { assignMemref(@id.sym@); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1);  }}
     @}
     | id assignment Expression          ';'
     @{ 
         @i @Stmt.context@ = addChild(metaNode(Assignment), @id.sym@); 
         /*we add the id as a pseudo node this way it is actually in the tree and we can perform a lookup on traversal */ 
-        @t { checkDeclared(@id.sym@->parent, @id.sym@->var);   checkSubtreeDeclared(@id.sym@->parent, @Expression.ids@); } /* we look above the pseudo node, we also validate expression */
+        @t { checkDeclared(@id.sym@->parent, @id.sym@);   checkSubtreeDeclared(@id.sym@->parent, @Expression.ids@); } /* we look above the pseudo node, we also validate expression */
+        @codegen {instr_assignment(@id.sym@); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1);}}
     @}
     | IfExprHead StmtList TEND ';'
     @{
@@ -111,7 +114,7 @@ Stmt: TVAR id assignment Expression    ';'
     @}
     | IfExprHead StmtList TELSE StmtList TEND ';'
     @{
-        @i @Stmt.context@ = addChild(addChild(metaNode(If), @StmtList.context@), @StmtList.1.context@);
+        @i @Stmt.context@ = ifThenElse(@StmtList.context@, @StmtList.1.context@);
         @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
     @}
     | LoopHead StmtList TEND ';'
@@ -145,7 +148,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = returnNode();
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
-        @codegen { debugSymTree(@Expression.ids@, 0); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
+        @codegen { setTarget(getRAX()); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
     @}
     ;
 

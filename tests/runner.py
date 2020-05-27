@@ -12,7 +12,7 @@ class Runner:
         self.output += "executing makefile ... \n"
         make = subprocess.check_output(["make"], cwd="../")
         self.output += str(make)
-        copyfile("../parser", "copy.out")
+        copyfile("../codea", "copy.out")
         self.output += "\n"
 
     def load_tests(self):

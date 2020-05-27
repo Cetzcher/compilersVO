@@ -7,6 +7,7 @@
 // we set lhs if lhs is linked otherwise we use it as is.
 #define LINK_VARS lhs = lhs->link == NULL ? lhs: lhs->link; rhs = rhs->link == NULL ? rhs : rhs->link;
 #define LINK_UNARY lhs = lhs->link == NULL ? lhs: lhs->link;
+#define LINK(x) ((x) = ((x)->link) == NULL? (x) : (x)->link)
 #define SYMREG(p) ((p)->assignedRegister)
 #define REG(p) ((p)->assignedRegister->name)
 
@@ -49,15 +50,38 @@ void declare_func(SymbolTree* function) {
     printf("\n");
 }
 
+int memrefInContext = 0;
+void assignMemref(SymbolTree* node) {
+    // we also want to create a memory "register"
+    node->assignedRegister = memreg(memrefInContext);
+    node->memref = memrefInContext++;
+    setTarget(node->assignedRegister);
+}
+
+void instr_assignment(SymbolTree* node) {
+    LINK(node);
+    setTarget(SYMREG(node));
+}
+
+reginfo* targetReg;
+void setTarget(reginfo* reg) {
+    printf("#### set target called with %s \n", reg->name);
+    targetReg = reg;
+}
+
 void finalize(SymbolTree* node) {
     // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
     node = node->link == NULL ? node : node->link;
-    reginfo* rax = getRAX();
-    if(SYMREG(node) == rax)
-        printf("\t#value is already in rax\n");
-    else
-        emit_movq(SYMREG(node), getRAX());
+    printf("# finalize called\n");
+    emit_movq(SYMREG(node), targetReg);
+    node->assignedRegister->isfree = 1;
     
+}
+void finalizec(SymbolTree* node) {
+    printf("# finalizec called\n");
+    emit_const_movq(node->value, targetReg);
+    if(node->assignedRegister != NULL)
+        node->assignedRegister->isfree = 1;
 }
 
 void generate_return() {
@@ -69,24 +93,15 @@ void generate_return() {
 // perform binary operation, expects lhs and rhs to be linked
 // either uses a temp register or uses the same register
 void __binop(char* op, SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
+    printf("# binop called lhs: %s (%s) rhs: %s\n", REG(lhs), op, REG(rhs));
     reginfo* target = getTempReg();
-    if(target != NULL) {
-        res->assignedRegister = target;
-        target->isfree = 0;
-        rhs->assignedRegister->isfree = 1;
-        emit_movq(SYMREG(lhs), target);
-        emit(op, SYMREG(rhs), target);
-
-    } else {
-        emit(op, SYMREG(lhs), SYMREG(rhs));
-        res->assignedRegister = rhs->assignedRegister;
-        printf("\t# target == NULL");
-    }
-    lhs->assignedRegister->isfree = 1;
+    emit_movq(SYMREG(lhs), target);
+    emit(op, SYMREG(rhs), target);
+    printf("# end binop\n ");
+    __freeandset(lhs, rhs, res, target);
 }
 
 void __unaryop(char* op, SymbolTree* res, SymbolTree* lhs) {
-    // TODO: since this modifies registers in place it could break lots of stuff!!!
     reginfo* target = getTempReg();
     emit_movq(SYMREG(lhs), target);
     printf("\t%s %%%s\n", op, target->name);
@@ -175,6 +190,7 @@ void memacess(SymbolTree* res, SymbolTree* lhs) {
         res->assignedRegister = lhs->assignedRegister;
     }
 }
+
 void memacessc(SymbolTree* res, SymbolTree* lhs) {
     reginfo* target = getTempReg();
     if(target == NULL) {
@@ -219,7 +235,7 @@ void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
 
 void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
     // we need to invert our result so we generate a NOTQ instruction afterwards
-    arg = arg->link == NULL ? arg : arg->link;
+    LINK(arg);
     reginfo* target = getTempReg();
     char* lab = createLable();
     char* comparefin = createLable();
@@ -280,6 +296,8 @@ char* __chooseInstr(int op) {
 }
 
 void imtoreg(SymbolTree* reg, SymbolTree* im) {
+    LINK(im);
+    LINK(reg);
     reginfo* target = getTempReg();
     char* instr = __chooseInstr(reg->op);
     emit_const_movq(reg->value, target);

@@ -663,7 +663,7 @@ void burm_reduce(NODEPTR_TYPE bnode, int goalnt)
 
   switch (ruleNo) {
   case 1:
-   printf("\tMOVQ $%d, %%rax\n", bnode->value);
+   finalizec(bnode);
     break;
   case 2:
    finalize(bnode);

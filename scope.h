@@ -81,6 +81,7 @@ SymbolTree* addChild(SymbolTree* tree, SymbolTree* child);
 SymbolTree* exprnode(SymbolTree* left, SymbolTree* op, SymbolTree* right);
 SymbolTree* opnode(int op, SymbolTree* child);
 SymbolTree* oplist(SymbolTree* lst, SymbolTree* head);
+SymbolTree* ifThenElse(SymbolTree* ifpath, SymbolTree* elsepath);
 // adds all children of parent of child to tree at the curent level
 SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs);
 SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, boolean validate_tree);
@@ -98,7 +99,7 @@ SymbolTree* validate(SymbolTree* tree);
 SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* subtree);
 
 // chcks that var was delcared starting from tree and looking left and up
-void checkDeclared(SymbolTree* tree, variable var);
+void checkDeclared(SymbolTree* tree, SymbolTree* var);
 
 // starts at node and chcks that it 1) has a loop ancestor and 2) that the loops variable is equal to var 
 // this function uses node->var for comparison

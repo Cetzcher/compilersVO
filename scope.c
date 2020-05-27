@@ -216,6 +216,13 @@ SymbolTree* oplist(SymbolTree* lst, SymbolTree* head) {
     return head;
 }
 
+SymbolTree* ifThenElse(SymbolTree* ifpath, SymbolTree* elsepath) {
+    int maxVars = ifpath->declaredVars > elsepath->declaredVars ? ifpath->declaredVars : elsepath->declaredVars;
+    SymbolTree* ifmetanode = addChild(addChild(metaNode(If), ifpath), elsepath);
+    ifmetanode->declaredVars = maxVars; 
+    return ifmetanode;
+}
+
 SymbolTree* addChild(SymbolTree* tree, SymbolTree* child) {
     // check if there is enough room in tree
     if(child == NULL) {
@@ -411,10 +418,10 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
     return tree;
 }
 
-void checkDeclared(SymbolTree* tree, variable var) {
+void checkDeclared(SymbolTree* tree, SymbolTree* var) {
     if(var == NULL)
             return;
-    SymbolTree* sym = lookupInternal(tree, var);
+    SymbolTree* sym = lookupInternal(tree, var->var);
     if(sym == NULL) {
         // child[i] is not declared
         printf("Error: %s use before declartation\n", var);
@@ -423,6 +430,7 @@ void checkDeclared(SymbolTree* tree, variable var) {
         printf("Error: %s is used as a Label\n", var);
         criticalNoMSG(3);
     }
+    var->link = sym;
 }
 
 void checkLooprefCorrect(SymbolTree* node) {
