@@ -34,12 +34,16 @@ struct yyyT3 {SymbolTree* op;};
 typedef struct yyyT3 *yyyP3; 
 
 
-struct yyyT4 {SymbolTree* ids;}; 
+struct yyyT4 {SymbolTree* ids; char* closelab; }; 
 typedef struct yyyT4 *yyyP4; 
 
 
-struct yyyT5 { SymbolTree* context; SymbolTree* inherited; }; 
+struct yyyT5 {SymbolTree* ids;}; 
 typedef struct yyyT5 *yyyP5; 
+
+
+struct yyyT6 { SymbolTree* context; SymbolTree* inherited; }; 
+typedef struct yyyT6 *yyyP6; 
                                                       /*custom*/  
 typedef unsigned char yyyWAT; 
 typedef unsigned char yyyRCT; 

@@ -4,6 +4,14 @@
 
 extern const char* argumentRegister[6];
 
+typedef struct symLinkedList
+{
+    struct symLinkedList* next;
+    char* id;
+    SymbolTree* nodes;
+} symLinkedList;
+
+
 enum Ops {
     OP_NOP = 0,
     OP_PLUS = 1,
@@ -20,12 +28,20 @@ enum Ops {
     OP_MEMACESS = 12
 };
 
+symLinkedList* createSymLinkedList();
+
+
 void init_codegen();
 void declare_func(SymbolTree* function);
 void generate_return();
 void assignMemref(SymbolTree* node);
 void setTarget(reginfo* reg);
 void instr_assignment(SymbolTree* node);
+void instr_statements(SymbolTree* node);
+void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifend);
+void instr_if(SymbolTree* context, char* endlab);
+void instr_loop(SymbolTree* expr, SymbolTree* loop);
+void postponeLabelGen(char* lab, SymbolTree* node);
 void finalize(SymbolTree* node);
 void finalizec(SymbolTree* node);
 

@@ -35,10 +35,12 @@
 @attributes {long value; } number
 @attributes { SymbolTree* sym;} id LoopHead CallStart
 @attributes {SymbolTree* op;} BinaryOperator Unary UnaryList 
-@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs IfExprHead MemAcess PrefixTerm TermOrCall Args ArgsTrailed CallArgsTrailed CompareExpr ProductExpr SumExpr AndExpr
+@attributes {SymbolTree* ids; char* closelab; } IfExprHead;
+@attributes {SymbolTree* ids;} ArgList Expression Term Factor Call CallArgs MemAcess PrefixTerm TermOrCall Args ArgsTrailed CallArgsTrailed CompareExpr ProductExpr SumExpr AndExpr
 @attributes { SymbolTree* context; SymbolTree* inherited; } StmtList Stmt Funcdef FuncList
 @traversal @preorder t
 @traversal @preorder codegen
+@traversal @preorder codegenClose
 
 %%
 Program: 
@@ -80,17 +82,23 @@ ArgsTrailed: id ','                  @{ @i @ArgsTrailed.ids@ = param(NULL, @id.s
     | ArgsTrailed id ','             @{ @i @ArgsTrailed.ids@ = param(@ArgsTrailed.1.ids@, @id.sym@); @}
     ;
 
-StmtList: /* empty */ @{ @i @StmtList.context@ = metaNode(ExpressionStatement); @} 
+StmtList: /* empty */ 
+    @{ 
+        @i @StmtList.context@ = metaNode(ExpressionStatement); 
+        @codegen {instr_statements(@StmtList.context@); }
+    @} 
     | Stmt 
     @{
         @i @StmtList.context@ = statements(@Stmt.context@, NULL);
         @i @Stmt.inherited@ = @StmtList.context@; 
+        @codegen {instr_statements(@StmtList.context@); }
     @}
     | StmtList Stmt 
     @{ 
         @i @StmtList.context@ = statements(@StmtList.1.context@, @Stmt.context@);
         @i @Stmt.inherited@ = @StmtList.context@;
         @i @StmtList.1.inherited@ = @StmtList.context@;  
+        @codegen {instr_statements(@StmtList.context@); }
     @}
     ; 
 
@@ -111,27 +119,35 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = @StmtList.context@;
         @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
+        @codegen instr_if(@IfExprHead.ids@, @IfExprHead.closelab@);
+        @codegen @revorder(1) printf("%s:\n", @IfExprHead.closelab@);
     @}
     | IfExprHead StmtList TELSE StmtList TEND ';'
     @{
         @i @Stmt.context@ = ifThenElse(@StmtList.context@, @StmtList.1.context@);
         @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
+        @codegen instr_ifelse(@Stmt.context@, @IfExprHead.ids@, @IfExprHead.closelab@);
+        @codegen @revorder(1) printf("%s:\n", @IfExprHead.closelab@);
     @}
     | LoopHead StmtList TEND ';'
     @{
         @i @Stmt.context@ = addChildren(loopNode(@LoopHead.sym@), @StmtList.context@);
         @t checkLoopUnique(@LoopHead.sym@);
+        @codegen printf("__%s:\n", @LoopHead.sym@->var);
+        @codegen @revorder(1) printf("__end%s:\n", @LoopHead.sym@->var);
     @}
     | TBREAK id ';'
     @{
         @i @Stmt.context@ = loopRefNode(@id.sym@);
         /*we need to validate that id is actually a loop and that this statement is within the loop body*/
         @t checkLooprefCorrect(@id.sym@); 
+        @codegen { printf("\tjmp __end%s\n", @id.sym@->var); }
     @}
     | TCONT id ';'
     @{
         @i @Stmt.context@ = loopRefNode(@id.sym@);
         @t checkLooprefCorrect(@id.sym@); 
+        @codegen { printf("\tjmp __%s\n", @id.sym@->var); }
     @}
     | MemAcess assignment Expression ';'
     @{
@@ -152,7 +168,9 @@ Stmt: TVAR id assignment Expression    ';'
     @}
     ;
 
-IfExprHead: TIF Expression TTHEN;
+IfExprHead: TIF Expression TTHEN
+    @{ @i @IfExprHead.closelab@ = createLable(); @}
+    ;
 LoopHead: id ':' TLOOP;
 
 Unary: 

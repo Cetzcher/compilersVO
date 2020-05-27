@@ -282,6 +282,7 @@ void debugSymTree(SymbolTree* tree, int depth) {
         printf("var");
     else
         printf("Type: (%d)", tree->type);
+    printf(" addr: %p", tree);
     printf("\n");
     for(int i = 0; i < tree->count; i++) {
         debugSymTree(tree->children[i], depth + 1);
@@ -406,7 +407,7 @@ SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
         hookVars(tree, sub);    // check root level
     }
     // iterate every child of sub if they are a variable then hook it otherwise
-    // recurse into in breadth-first manner.
+    // recurse into in depth-first manner.
     for(int i = 0; i < sub->count; i++) {
         SymbolTree* currentSymbol = sub->children[i];
         if(currentSymbol->type == Variable) {

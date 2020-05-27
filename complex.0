@@ -1,5 +1,17 @@
 f(a, b)
-    var x := a + b;
-    x := 1 + 2;
-    return x;
+    // problems we have to solve
+    // sometimes our compare instructions fail if we use stack variables
+    // we need to figure out how we can reserve space for vars that are declared in 
+    // an if-branch
+    // i.e if x then var p := 1; var z := 3; end;
+    // we also need to take extra care of handleing the rbx register since that 
+    // NEEDS to be popped once the function ends.
+    // also take a look at truthy logic
+    var s := 1;
+    if 1 <= 2 then
+        return 1;
+    else
+        return 2;
+    end;
+    return s;
 end;

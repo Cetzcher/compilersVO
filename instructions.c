@@ -2,6 +2,7 @@
 #include "registerinfo.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // this is maybe the worst code in this entire program but it is also magic
 // we set lhs if lhs is linked otherwise we use it as is.
@@ -13,10 +14,12 @@
 
 const char* stackpointer = "%rsp";
 const char* basepointer = "%rbp";
+const symLinkedList* start;
 
 
 void init_codegen(SymbolTree* rootlevel) {
     initregs();
+    start = createSymLinkedList();
     printf(".text\n");
     for(int i = 0; i < rootlevel->count; i++) {
         char* name = rootlevel->children[i]->var;
@@ -65,20 +68,108 @@ void instr_assignment(SymbolTree* node) {
 
 reginfo* targetReg;
 void setTarget(reginfo* reg) {
-    printf("#### set target called with %s \n", reg->name);
     targetReg = reg;
+}
+
+symLinkedList* createSymLinkedList() {
+    symLinkedList* lst = malloc(sizeof(symLinkedList));
+    lst->next = NULL;
+    lst->id = NULL;
+    lst->nodes = NULL;
+    return lst;
+}
+
+
+void instr_if(SymbolTree* expr, char* endlab) {
+    setTarget(getRAX());
+    if(burm_label(expr)) {
+        burm_reduce(expr, 1);
+         // we now have the value we want to compare with in rax
+         // we can now test rax, 1 
+         printf("\ttest $1, %%rax\n");
+         printf("\tjz %s\n", endlab);
+    }
+}
+
+void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifendlab) {
+    // we know that an ifelse node has exactly two statements chidren
+    // we mark both for a label, expr contains the expr we want to test
+    char* elsepath = createLable();
+    SymbolTree* elsepathnode = context->children[1];
+    int len = strlen(elsepath) + strlen(ifendlab) + 8;
+    char* instr = malloc(sizeof(char) * len);
+    snprintf(instr, len,  "\tjmp %s\n%s:\n", ifendlab, elsepath);
+    postponeLabelGen(instr, elsepathnode);
+    setTarget(getRAX());
+    if(burm_label(expr)) {
+         burm_reduce(expr, 1); 
+         // we now have the value we want to compare with in rax
+         // we can now test rax, 1  if the number is 0 we have an even number 
+         printf("\ttest $1, %%rax\n");
+         // if the number is 0 we want to execute the truthy path
+         printf("\tjz %s \n", elsepath);  // if not zero then 
+         // else we excute the false path
+    }
+}
+
+void instr_loop(SymbolTree* context, SymbolTree* loop) {
+    printf("__%s:\n", loop->var);
+    // look for loop in context and postpone end generation to next sibling of loop
+    int index;
+    for(index = 0; index < context->count; index++) {
+        if(context->children[index] == loop)
+            break;
+    }
+    int len = strlen(loop->var) + 7;
+    char* endlab = malloc(sizeof(char) * len);
+    snprintf(endlab, len, "__end%s:\n", loop);
+    postponeLabelGen(endlab, context->children[index + 1]);
+}
+
+void instr_statements(SymbolTree* node) {
+    // this is a very hacky construct, basically we iterate the symLinkedList and comprae each element with node
+    // if we find  it, we delete if from the linked list and insert the associated label. this is done for handeling if stmts else stmts
+    // mainly for inserting the else label
+    symLinkedList* cur = start;
+    while(cur != NULL)
+    {
+        if(cur->nodes == node) {
+            printf("%s\n", cur->id);
+            // remove the node 
+            cur->nodes = NULL;
+            cur->id = NULL;
+            return;
+        }
+        cur = cur->next;
+    }
+} 
+
+void postponeLabelGen(char* lab, SymbolTree* node) {
+    // we insert into our symLinkedList if we find a free spot otherwise we grow the list
+    symLinkedList* cur;
+    for(cur = start; cur->next != NULL; cur = cur->next) {
+        if(cur->nodes == NULL) {
+            cur->nodes = node;
+            cur->id = lab; 
+            return;
+        }
+    }
+    // we have not found a free spot cur is now the last element, now create a node
+    symLinkedList* lstnode = createSymLinkedList();
+    lstnode->nodes = node;
+    lstnode->id = lab;
+    cur->next = lstnode;
 }
 
 void finalize(SymbolTree* node) {
     // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
     node = node->link == NULL ? node : node->link;
-    printf("# finalize called\n");
-    emit_movq(SYMREG(node), targetReg);
+    if(node->assignedRegister != targetReg)
+        emit_movq(SYMREG(node), targetReg);
     node->assignedRegister->isfree = 1;
     
 }
 void finalizec(SymbolTree* node) {
-    printf("# finalizec called\n");
     emit_const_movq(node->value, targetReg);
     if(node->assignedRegister != NULL)
         node->assignedRegister->isfree = 1;
@@ -97,7 +188,7 @@ void __binop(char* op, SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     reginfo* target = getTempReg();
     emit_movq(SYMREG(lhs), target);
     emit(op, SYMREG(rhs), target);
-    printf("# end binop\n ");
+    printf("# end binop\n");
     __freeandset(lhs, rhs, res, target);
 }
 
