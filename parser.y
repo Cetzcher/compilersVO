@@ -149,10 +149,11 @@ Stmt: TVAR id assignment Expression    ';'
         @t checkLooprefCorrect(@id.sym@); 
         @codegen { printf("\tjmp __%s\n", @id.sym@->var); }
     @}
-    | MemAcess assignment Expression ';'
+    | '*' Term assignment Expression ';'
     @{
         @i @Stmt.context@ = metaNode(Assignment);
-        @t {checkSubtreeDeclared(@Stmt.context@, @MemAcess.ids@); checkSubtreeDeclared(@Stmt.context@, @Expression.ids@); }
+        @t {checkSubtreeDeclared(@Stmt.context@, @Term.ids@); checkSubtreeDeclared(@Stmt.context@, @Expression.ids@); }
+        @codegen {setTarget(getRAX()); instr_memacess(@Expression.ids@);}
     @}
     | Expression   ';'                     
     @{ 
@@ -224,9 +225,6 @@ CallArgsTrailed: Expression ','         @{ @i @CallArgsTrailed.ids@ = @Expressio
     | CallArgsTrailed Expression ','    @{ @i @CallArgsTrailed.ids@ = addChildrenMode(@CallArgsTrailed.1.ids@, @Expression.ids@, FALSE); @}
     ;
 
-
-MemAcess: '*' Term 
-    ;
 
 Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = /*callNode(@id.sym@, @CallArgs.ids@)*/ addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
     ;

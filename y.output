@@ -1,8 +1,8 @@
 State 14 conflicts: 11 shift/reduce
-State 26 conflicts: 3 shift/reduce
+State 25 conflicts: 3 shift/reduce
 State 29 conflicts: 11 shift/reduce
 State 30 conflicts: 11 shift/reduce
-State 83 conflicts: 11 shift/reduce
+State 82 conflicts: 11 shift/reduce
 
 
 Grammar
@@ -40,7 +40,7 @@ Grammar
    21     | LoopHead StmtList TEND ';'
    22     | TBREAK id ';'
    23     | TCONT id ';'
-   24     | MemAcess assignment Expression ';'
+   24     | '*' Term assignment Expression ';'
    25     | Expression ';'
    26     | TRETURN Expression ';'
 
@@ -84,23 +84,21 @@ Grammar
    53 CallArgsTrailed: Expression ','
    54                | CallArgsTrailed Expression ','
 
-   55 MemAcess: '*' Term
+   55 Call: id '(' CallArgs ')'
 
-   56 Call: id '(' CallArgs ')'
-
-   57 Term: number
-   58     | '(' Expression ')'
-   59     | id
-   60     | Call
+   56 Term: number
+   57     | '(' Expression ')'
+   58     | id
+   59     | Call
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 '#' (35) 42
-'(' (40) 7 56 58
-')' (41) 7 56 58
-'*' (42) 31 37 38 55
+'(' (40) 7 55 57
+')' (41) 7 55 57
+'*' (42) 24 31 37 38
 '+' (43) 35 36
 ',' (44) 12 13 53 54
 '-' (45) 30
@@ -118,8 +116,8 @@ TCONT (265) 23
 TVAR (266) 17
 TNOT (267) 29
 TAND (268) 39 40
-id (269) 7 9 11 12 13 17 18 22 23 28 56 59
-number (270) 57
+id (269) 7 9 11 12 13 17 18 22 23 28 55 58
+number (270) 56
 lessThan (271) 41
 assignment (272) 17 18 24
 
@@ -166,17 +164,15 @@ CompareExpr (45)
     on left: 41 42, on right: 47
 Expression (46)
     on left: 43 44 45 46 47 48, on right: 17 18 24 25 26 27 50 52 53
-    54 58
+    54 57
 CallArgs (47)
-    on left: 49 50 51 52, on right: 56
+    on left: 49 50 51 52, on right: 55
 CallArgsTrailed (48)
     on left: 53 54, on right: 50 51 54
-MemAcess (49)
-    on left: 55, on right: 24
-Call (50)
-    on left: 56, on right: 60
-Term (51)
-    on left: 57 58 59 60, on right: 34 35 36 37 38 39 40 41 42 48 55
+Call (49)
+    on left: 55, on right: 59
+Term (50)
+    on left: 56 57 58 59, on right: 24 34 35 36 37 38 39 40 41 42 48
 
 
 State 0
@@ -316,8 +312,8 @@ State 14
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
     TIF       [reduce using rule 14 (StmtList)]
     TRETURN   [reduce using rule 14 (StmtList)]
@@ -328,8 +324,8 @@ State 14
     id        [reduce using rule 14 (StmtList)]
     number    [reduce using rule 14 (StmtList)]
     '('       [reduce using rule 14 (StmtList)]
-    '-'       [reduce using rule 14 (StmtList)]
     '*'       [reduce using rule 14 (StmtList)]
+    '-'       [reduce using rule 14 (StmtList)]
     $default  reduce using rule 14 (StmtList)
 
     StmtList     go to state 27
@@ -344,9 +340,8 @@ State 14
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 15
@@ -354,7 +349,7 @@ State 15
     9 Args: ArgsTrailed id .
    13 ArgsTrailed: ArgsTrailed id . ','
 
-    ','  shift, and go to state 42
+    ','  shift, and go to state 41
 
     $default  reduce using rule 9 (Args)
 
@@ -364,11 +359,34 @@ State 16
    27 IfExprHead: TIF . Expression TTHEN
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
+
+    Unary        go to state 31
+    UnaryList    go to state 32
+    PrefixTerm   go to state 33
+    SumExpr      go to state 34
+    ProductExpr  go to state 35
+    AndExpr      go to state 36
+    CompareExpr  go to state 37
+    Expression   go to state 44
+    Call         go to state 39
+    Term         go to state 40
+
+
+State 17
+
+   26 Stmt: TRETURN . Expression ';'
+
+    TNOT    shift, and go to state 21
+    id      shift, and go to state 42
+    number  shift, and go to state 23
+    '('     shift, and go to state 24
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     Unary        go to state 31
     UnaryList    go to state 32
@@ -378,52 +396,29 @@ State 16
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 45
-    Call         go to state 40
-    Term         go to state 41
-
-
-State 17
-
-   26 Stmt: TRETURN . Expression ';'
-
-    TNOT    shift, and go to state 21
-    id      shift, and go to state 43
-    number  shift, and go to state 23
-    '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
-
-    Unary        go to state 31
-    UnaryList    go to state 32
-    PrefixTerm   go to state 33
-    SumExpr      go to state 34
-    ProductExpr  go to state 35
-    AndExpr      go to state 36
-    CompareExpr  go to state 37
-    Expression   go to state 46
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 18
 
    22 Stmt: TBREAK . id ';'
 
-    id  shift, and go to state 47
+    id  shift, and go to state 46
 
 
 State 19
 
    23 Stmt: TCONT . id ';'
 
-    id  shift, and go to state 48
+    id  shift, and go to state 47
 
 
 State 20
 
    17 Stmt: TVAR . id assignment Expression ';'
 
-    id  shift, and go to state 49
+    id  shift, and go to state 48
 
 
 State 21
@@ -437,33 +432,33 @@ State 22
 
    18 Stmt: id . assignment Expression ';'
    28 LoopHead: id . ':' TLOOP
-   56 Call: id . '(' CallArgs ')'
-   59 Term: id .
+   55 Call: id . '(' CallArgs ')'
+   58 Term: id .
 
-    assignment  shift, and go to state 50
-    '('         shift, and go to state 51
-    ':'         shift, and go to state 52
+    assignment  shift, and go to state 49
+    '('         shift, and go to state 50
+    ':'         shift, and go to state 51
 
-    $default  reduce using rule 59 (Term)
+    $default  reduce using rule 58 (Term)
 
 
 State 23
 
-   57 Term: number .
+   56 Term: number .
 
-    $default  reduce using rule 57 (Term)
+    $default  reduce using rule 56 (Term)
 
 
 State 24
 
-   58 Term: '(' . Expression ')'
+   57 Term: '(' . Expression ')'
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     Unary        go to state 31
     UnaryList    go to state 32
@@ -472,24 +467,17 @@ State 24
     ProductExpr  go to state 35
     AndExpr      go to state 36
     CompareExpr  go to state 37
-    Expression   go to state 53
-    Call         go to state 40
-    Term         go to state 41
+    Expression   go to state 52
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 25
 
-   30 Unary: '-' .
-
-    $default  reduce using rule 30 (Unary)
-
-
-State 26
-
+   24 Stmt: '*' . Term assignment Expression ';'
    31 Unary: '*' .
-   55 MemAcess: '*' . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
@@ -498,8 +486,15 @@ State 26
     '('       [reduce using rule 31 (Unary)]
     $default  reduce using rule 31 (Unary)
 
-    Call  go to state 40
-    Term  go to state 54
+    Call  go to state 39
+    Term  go to state 53
+
+
+State 26
+
+   30 Unary: '-' .
+
+    $default  reduce using rule 30 (Unary)
 
 
 State 27
@@ -508,7 +503,7 @@ State 27
    16 StmtList: StmtList . Stmt
 
     TIF      shift, and go to state 16
-    TEND     shift, and go to state 55
+    TEND     shift, and go to state 54
     TRETURN  shift, and go to state 17
     TBREAK   shift, and go to state 18
     TCONT    shift, and go to state 19
@@ -517,10 +512,10 @@ State 27
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
-    Stmt         go to state 56
+    Stmt         go to state 55
     IfExprHead   go to state 29
     LoopHead     go to state 30
     Unary        go to state 31
@@ -531,9 +526,8 @@ State 27
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 28
@@ -557,8 +551,8 @@ State 29
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
     TIF       [reduce using rule 14 (StmtList)]
     TRETURN   [reduce using rule 14 (StmtList)]
@@ -569,11 +563,11 @@ State 29
     id        [reduce using rule 14 (StmtList)]
     number    [reduce using rule 14 (StmtList)]
     '('       [reduce using rule 14 (StmtList)]
-    '-'       [reduce using rule 14 (StmtList)]
     '*'       [reduce using rule 14 (StmtList)]
+    '-'       [reduce using rule 14 (StmtList)]
     $default  reduce using rule 14 (StmtList)
 
-    StmtList     go to state 57
+    StmtList     go to state 56
     Stmt         go to state 28
     IfExprHead   go to state 29
     LoopHead     go to state 30
@@ -585,9 +579,8 @@ State 29
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 30
@@ -603,8 +596,8 @@ State 30
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
     TIF       [reduce using rule 14 (StmtList)]
     TRETURN   [reduce using rule 14 (StmtList)]
@@ -615,11 +608,11 @@ State 30
     id        [reduce using rule 14 (StmtList)]
     number    [reduce using rule 14 (StmtList)]
     '('       [reduce using rule 14 (StmtList)]
-    '-'       [reduce using rule 14 (StmtList)]
     '*'       [reduce using rule 14 (StmtList)]
+    '-'       [reduce using rule 14 (StmtList)]
     $default  reduce using rule 14 (StmtList)
 
-    StmtList     go to state 58
+    StmtList     go to state 57
     Stmt         go to state 28
     IfExprHead   go to state 29
     LoopHead     go to state 30
@@ -631,9 +624,8 @@ State 30
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 31
@@ -649,15 +641,15 @@ State 32
    34 PrefixTerm: UnaryList . Term
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
-    Unary  go to state 59
-    Call   go to state 40
-    Term   go to state 60
+    Unary  go to state 58
+    Call   go to state 39
+    Term   go to state 59
 
 
 State 33
@@ -672,7 +664,7 @@ State 34
    36 SumExpr: SumExpr . '+' Term
    44 Expression: SumExpr .
 
-    '+'  shift, and go to state 61
+    '+'  shift, and go to state 60
 
     $default  reduce using rule 44 (Expression)
 
@@ -682,7 +674,7 @@ State 35
    38 ProductExpr: ProductExpr . '*' Term
    45 Expression: ProductExpr .
 
-    '*'  shift, and go to state 62
+    '*'  shift, and go to state 61
 
     $default  reduce using rule 45 (Expression)
 
@@ -692,7 +684,7 @@ State 36
    40 AndExpr: AndExpr . TAND Term
    46 Expression: AndExpr .
 
-    TAND  shift, and go to state 63
+    TAND  shift, and go to state 62
 
     $default  reduce using rule 46 (Expression)
 
@@ -708,24 +700,17 @@ State 38
 
    25 Stmt: Expression . ';'
 
-    ';'  shift, and go to state 64
+    ';'  shift, and go to state 63
 
 
 State 39
 
-   24 Stmt: MemAcess . assignment Expression ';'
+   59 Term: Call .
 
-    assignment  shift, and go to state 65
+    $default  reduce using rule 59 (Term)
 
 
 State 40
-
-   60 Term: Call .
-
-    $default  reduce using rule 60 (Term)
-
-
-State 41
 
    35 SumExpr: Term . '+' Term
    37 ProductExpr: Term . '*' Term
@@ -734,84 +719,84 @@ State 41
    42            | Term . '#' Term
    48 Expression: Term .
 
-    TAND      shift, and go to state 66
-    lessThan  shift, and go to state 67
-    '*'       shift, and go to state 68
-    '+'       shift, and go to state 69
-    '#'       shift, and go to state 70
+    TAND      shift, and go to state 64
+    lessThan  shift, and go to state 65
+    '*'       shift, and go to state 66
+    '+'       shift, and go to state 67
+    '#'       shift, and go to state 68
 
     $default  reduce using rule 48 (Expression)
 
 
-State 42
+State 41
 
    13 ArgsTrailed: ArgsTrailed id ',' .
 
     $default  reduce using rule 13 (ArgsTrailed)
 
 
+State 42
+
+   55 Call: id . '(' CallArgs ')'
+   58 Term: id .
+
+    '('  shift, and go to state 50
+
+    $default  reduce using rule 58 (Term)
+
+
 State 43
-
-   56 Call: id . '(' CallArgs ')'
-   59 Term: id .
-
-    '('  shift, and go to state 51
-
-    $default  reduce using rule 59 (Term)
-
-
-State 44
 
    31 Unary: '*' .
 
     $default  reduce using rule 31 (Unary)
 
 
-State 45
+State 44
 
    27 IfExprHead: TIF Expression . TTHEN
 
-    TTHEN  shift, and go to state 71
+    TTHEN  shift, and go to state 69
+
+
+State 45
+
+   26 Stmt: TRETURN Expression . ';'
+
+    ';'  shift, and go to state 70
 
 
 State 46
 
-   26 Stmt: TRETURN Expression . ';'
+   22 Stmt: TBREAK id . ';'
 
-    ';'  shift, and go to state 72
+    ';'  shift, and go to state 71
 
 
 State 47
 
-   22 Stmt: TBREAK id . ';'
+   23 Stmt: TCONT id . ';'
 
-    ';'  shift, and go to state 73
+    ';'  shift, and go to state 72
 
 
 State 48
 
-   23 Stmt: TCONT id . ';'
+   17 Stmt: TVAR id . assignment Expression ';'
 
-    ';'  shift, and go to state 74
+    assignment  shift, and go to state 73
 
 
 State 49
 
-   17 Stmt: TVAR id . assignment Expression ';'
-
-    assignment  shift, and go to state 75
-
-
-State 50
-
    18 Stmt: id assignment . Expression ';'
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     Unary        go to state 31
     UnaryList    go to state 32
@@ -820,21 +805,21 @@ State 50
     ProductExpr  go to state 35
     AndExpr      go to state 36
     CompareExpr  go to state 37
-    Expression   go to state 76
-    Call         go to state 40
-    Term         go to state 41
+    Expression   go to state 74
+    Call         go to state 39
+    Term         go to state 40
 
 
-State 51
+State 50
 
-   56 Call: id '(' . CallArgs ')'
+   55 Call: id '(' . CallArgs ')'
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     $default  reduce using rule 49 (CallArgs)
 
@@ -845,56 +830,89 @@ State 51
     ProductExpr      go to state 35
     AndExpr          go to state 36
     CompareExpr      go to state 37
-    Expression       go to state 77
-    CallArgs         go to state 78
-    CallArgsTrailed  go to state 79
-    Call             go to state 40
-    Term             go to state 41
+    Expression       go to state 75
+    CallArgs         go to state 76
+    CallArgsTrailed  go to state 77
+    Call             go to state 39
+    Term             go to state 40
+
+
+State 51
+
+   28 LoopHead: id ':' . TLOOP
+
+    TLOOP  shift, and go to state 78
 
 
 State 52
 
-   28 LoopHead: id ':' . TLOOP
+   57 Term: '(' Expression . ')'
 
-    TLOOP  shift, and go to state 80
+    ')'  shift, and go to state 79
 
 
 State 53
 
-   58 Term: '(' Expression . ')'
+   24 Stmt: '*' Term . assignment Expression ';'
 
-    ')'  shift, and go to state 81
+    assignment  shift, and go to state 80
 
 
 State 54
 
-   55 MemAcess: '*' Term .
+    7 Funcdef: id '(' Args ')' StmtList TEND . ';'
 
-    $default  reduce using rule 55 (MemAcess)
+    ';'  shift, and go to state 81
 
 
 State 55
-
-    7 Funcdef: id '(' Args ')' StmtList TEND . ';'
-
-    ';'  shift, and go to state 82
-
-
-State 56
 
    16 StmtList: StmtList Stmt .
 
     $default  reduce using rule 16 (StmtList)
 
 
-State 57
+State 56
 
    16 StmtList: StmtList . Stmt
    19 Stmt: IfExprHead StmtList . TEND ';'
    20     | IfExprHead StmtList . TELSE StmtList TEND ';'
 
     TIF      shift, and go to state 16
-    TELSE    shift, and go to state 83
+    TELSE    shift, and go to state 82
+    TEND     shift, and go to state 83
+    TRETURN  shift, and go to state 17
+    TBREAK   shift, and go to state 18
+    TCONT    shift, and go to state 19
+    TVAR     shift, and go to state 20
+    TNOT     shift, and go to state 21
+    id       shift, and go to state 22
+    number   shift, and go to state 23
+    '('      shift, and go to state 24
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
+
+    Stmt         go to state 55
+    IfExprHead   go to state 29
+    LoopHead     go to state 30
+    Unary        go to state 31
+    UnaryList    go to state 32
+    PrefixTerm   go to state 33
+    SumExpr      go to state 34
+    ProductExpr  go to state 35
+    AndExpr      go to state 36
+    CompareExpr  go to state 37
+    Expression   go to state 38
+    Call         go to state 39
+    Term         go to state 40
+
+
+State 57
+
+   16 StmtList: StmtList . Stmt
+   21 Stmt: LoopHead StmtList . TEND ';'
+
+    TIF      shift, and go to state 16
     TEND     shift, and go to state 84
     TRETURN  shift, and go to state 17
     TBREAK   shift, and go to state 18
@@ -904,10 +922,10 @@ State 57
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
-    Stmt         go to state 56
+    Stmt         go to state 55
     IfExprHead   go to state 29
     LoopHead     go to state 30
     Unary        go to state 31
@@ -918,223 +936,165 @@ State 57
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
 State 58
-
-   16 StmtList: StmtList . Stmt
-   21 Stmt: LoopHead StmtList . TEND ';'
-
-    TIF      shift, and go to state 16
-    TEND     shift, and go to state 85
-    TRETURN  shift, and go to state 17
-    TBREAK   shift, and go to state 18
-    TCONT    shift, and go to state 19
-    TVAR     shift, and go to state 20
-    TNOT     shift, and go to state 21
-    id       shift, and go to state 22
-    number   shift, and go to state 23
-    '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
-
-    Stmt         go to state 56
-    IfExprHead   go to state 29
-    LoopHead     go to state 30
-    Unary        go to state 31
-    UnaryList    go to state 32
-    PrefixTerm   go to state 33
-    SumExpr      go to state 34
-    ProductExpr  go to state 35
-    AndExpr      go to state 36
-    CompareExpr  go to state 37
-    Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
-
-
-State 59
 
    33 UnaryList: UnaryList Unary .
 
     $default  reduce using rule 33 (UnaryList)
 
 
-State 60
+State 59
 
    34 PrefixTerm: UnaryList Term .
 
     $default  reduce using rule 34 (PrefixTerm)
 
 
-State 61
+State 60
 
    36 SumExpr: SumExpr '+' . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
-    Call  go to state 40
+    Call  go to state 39
+    Term  go to state 85
+
+
+State 61
+
+   38 ProductExpr: ProductExpr '*' . Term
+
+    id      shift, and go to state 42
+    number  shift, and go to state 23
+    '('     shift, and go to state 24
+
+    Call  go to state 39
     Term  go to state 86
 
 
 State 62
 
-   38 ProductExpr: ProductExpr '*' . Term
+   40 AndExpr: AndExpr TAND . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
-    Call  go to state 40
+    Call  go to state 39
     Term  go to state 87
 
 
 State 63
-
-   40 AndExpr: AndExpr TAND . Term
-
-    id      shift, and go to state 43
-    number  shift, and go to state 23
-    '('     shift, and go to state 24
-
-    Call  go to state 40
-    Term  go to state 88
-
-
-State 64
 
    25 Stmt: Expression ';' .
 
     $default  reduce using rule 25 (Stmt)
 
 
-State 65
+State 64
 
-   24 Stmt: MemAcess assignment . Expression ';'
+   39 AndExpr: Term TAND . Term
 
-    TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
 
-    Unary        go to state 31
-    UnaryList    go to state 32
-    PrefixTerm   go to state 33
-    SumExpr      go to state 34
-    ProductExpr  go to state 35
-    AndExpr      go to state 36
-    CompareExpr  go to state 37
-    Expression   go to state 89
-    Call         go to state 40
-    Term         go to state 41
+    Call  go to state 39
+    Term  go to state 88
+
+
+State 65
+
+   41 CompareExpr: Term lessThan . Term
+
+    id      shift, and go to state 42
+    number  shift, and go to state 23
+    '('     shift, and go to state 24
+
+    Call  go to state 39
+    Term  go to state 89
 
 
 State 66
 
-   39 AndExpr: Term TAND . Term
+   37 ProductExpr: Term '*' . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
-    Call  go to state 40
+    Call  go to state 39
     Term  go to state 90
 
 
 State 67
 
-   41 CompareExpr: Term lessThan . Term
+   35 SumExpr: Term '+' . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
-    Call  go to state 40
+    Call  go to state 39
     Term  go to state 91
 
 
 State 68
 
-   37 ProductExpr: Term '*' . Term
+   42 CompareExpr: Term '#' . Term
 
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
 
-    Call  go to state 40
+    Call  go to state 39
     Term  go to state 92
 
 
 State 69
-
-   35 SumExpr: Term '+' . Term
-
-    id      shift, and go to state 43
-    number  shift, and go to state 23
-    '('     shift, and go to state 24
-
-    Call  go to state 40
-    Term  go to state 93
-
-
-State 70
-
-   42 CompareExpr: Term '#' . Term
-
-    id      shift, and go to state 43
-    number  shift, and go to state 23
-    '('     shift, and go to state 24
-
-    Call  go to state 40
-    Term  go to state 94
-
-
-State 71
 
    27 IfExprHead: TIF Expression TTHEN .
 
     $default  reduce using rule 27 (IfExprHead)
 
 
-State 72
+State 70
 
    26 Stmt: TRETURN Expression ';' .
 
     $default  reduce using rule 26 (Stmt)
 
 
-State 73
+State 71
 
    22 Stmt: TBREAK id ';' .
 
     $default  reduce using rule 22 (Stmt)
 
 
-State 74
+State 72
 
    23 Stmt: TCONT id ';' .
 
     $default  reduce using rule 23 (Stmt)
 
 
-State 75
+State 73
 
    17 Stmt: TVAR id assignment . Expression ';'
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     Unary        go to state 31
     UnaryList    go to state 32
@@ -1143,47 +1103,47 @@ State 75
     ProductExpr  go to state 35
     AndExpr      go to state 36
     CompareExpr  go to state 37
-    Expression   go to state 95
-    Call         go to state 40
-    Term         go to state 41
+    Expression   go to state 93
+    Call         go to state 39
+    Term         go to state 40
 
 
-State 76
+State 74
 
    18 Stmt: id assignment Expression . ';'
 
-    ';'  shift, and go to state 96
+    ';'  shift, and go to state 94
 
 
-State 77
+State 75
 
    52 CallArgs: Expression .
    53 CallArgsTrailed: Expression . ','
 
-    ','  shift, and go to state 97
+    ','  shift, and go to state 95
 
     $default  reduce using rule 52 (CallArgs)
 
 
-State 78
+State 76
 
-   56 Call: id '(' CallArgs . ')'
+   55 Call: id '(' CallArgs . ')'
 
-    ')'  shift, and go to state 98
+    ')'  shift, and go to state 96
 
 
-State 79
+State 77
 
    50 CallArgs: CallArgsTrailed . Expression
    51         | CallArgsTrailed .
    54 CallArgsTrailed: CallArgsTrailed . Expression ','
 
     TNOT    shift, and go to state 21
-    id      shift, and go to state 43
+    id      shift, and go to state 42
     number  shift, and go to state 23
     '('     shift, and go to state 24
-    '-'     shift, and go to state 25
-    '*'     shift, and go to state 44
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
 
     $default  reduce using rule 51 (CallArgs)
 
@@ -1194,33 +1154,56 @@ State 79
     ProductExpr  go to state 35
     AndExpr      go to state 36
     CompareExpr  go to state 37
-    Expression   go to state 99
-    Call         go to state 40
-    Term         go to state 41
+    Expression   go to state 97
+    Call         go to state 39
+    Term         go to state 40
 
 
-State 80
+State 78
 
    28 LoopHead: id ':' TLOOP .
 
     $default  reduce using rule 28 (LoopHead)
 
 
+State 79
+
+   57 Term: '(' Expression ')' .
+
+    $default  reduce using rule 57 (Term)
+
+
+State 80
+
+   24 Stmt: '*' Term assignment . Expression ';'
+
+    TNOT    shift, and go to state 21
+    id      shift, and go to state 42
+    number  shift, and go to state 23
+    '('     shift, and go to state 24
+    '*'     shift, and go to state 43
+    '-'     shift, and go to state 26
+
+    Unary        go to state 31
+    UnaryList    go to state 32
+    PrefixTerm   go to state 33
+    SumExpr      go to state 34
+    ProductExpr  go to state 35
+    AndExpr      go to state 36
+    CompareExpr  go to state 37
+    Expression   go to state 98
+    Call         go to state 39
+    Term         go to state 40
+
+
 State 81
-
-   58 Term: '(' Expression ')' .
-
-    $default  reduce using rule 58 (Term)
-
-
-State 82
 
     7 Funcdef: id '(' Args ')' StmtList TEND ';' .
 
     $default  reduce using rule 7 (Funcdef)
 
 
-State 83
+State 82
 
    20 Stmt: IfExprHead StmtList TELSE . StmtList TEND ';'
 
@@ -1233,8 +1216,8 @@ State 83
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
     TIF       [reduce using rule 14 (StmtList)]
     TRETURN   [reduce using rule 14 (StmtList)]
@@ -1245,11 +1228,11 @@ State 83
     id        [reduce using rule 14 (StmtList)]
     number    [reduce using rule 14 (StmtList)]
     '('       [reduce using rule 14 (StmtList)]
-    '-'       [reduce using rule 14 (StmtList)]
     '*'       [reduce using rule 14 (StmtList)]
+    '-'       [reduce using rule 14 (StmtList)]
     $default  reduce using rule 14 (StmtList)
 
-    StmtList     go to state 100
+    StmtList     go to state 99
     Stmt         go to state 28
     IfExprHead   go to state 29
     LoopHead     go to state 30
@@ -1261,133 +1244,132 @@ State 83
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
+
+
+State 83
+
+   19 Stmt: IfExprHead StmtList TEND . ';'
+
+    ';'  shift, and go to state 100
 
 
 State 84
 
-   19 Stmt: IfExprHead StmtList TEND . ';'
+   21 Stmt: LoopHead StmtList TEND . ';'
 
     ';'  shift, and go to state 101
 
 
 State 85
 
-   21 Stmt: LoopHead StmtList TEND . ';'
-
-    ';'  shift, and go to state 102
-
-
-State 86
-
    36 SumExpr: SumExpr '+' Term .
 
     $default  reduce using rule 36 (SumExpr)
 
 
-State 87
+State 86
 
    38 ProductExpr: ProductExpr '*' Term .
 
     $default  reduce using rule 38 (ProductExpr)
 
 
-State 88
+State 87
 
    40 AndExpr: AndExpr TAND Term .
 
     $default  reduce using rule 40 (AndExpr)
 
 
-State 89
-
-   24 Stmt: MemAcess assignment Expression . ';'
-
-    ';'  shift, and go to state 103
-
-
-State 90
+State 88
 
    39 AndExpr: Term TAND Term .
 
     $default  reduce using rule 39 (AndExpr)
 
 
-State 91
+State 89
 
    41 CompareExpr: Term lessThan Term .
 
     $default  reduce using rule 41 (CompareExpr)
 
 
-State 92
+State 90
 
    37 ProductExpr: Term '*' Term .
 
     $default  reduce using rule 37 (ProductExpr)
 
 
-State 93
+State 91
 
    35 SumExpr: Term '+' Term .
 
     $default  reduce using rule 35 (SumExpr)
 
 
-State 94
+State 92
 
    42 CompareExpr: Term '#' Term .
 
     $default  reduce using rule 42 (CompareExpr)
 
 
-State 95
+State 93
 
    17 Stmt: TVAR id assignment Expression . ';'
 
-    ';'  shift, and go to state 104
+    ';'  shift, and go to state 102
 
 
-State 96
+State 94
 
    18 Stmt: id assignment Expression ';' .
 
     $default  reduce using rule 18 (Stmt)
 
 
-State 97
+State 95
 
    53 CallArgsTrailed: Expression ',' .
 
     $default  reduce using rule 53 (CallArgsTrailed)
 
 
-State 98
+State 96
 
-   56 Call: id '(' CallArgs ')' .
+   55 Call: id '(' CallArgs ')' .
 
-    $default  reduce using rule 56 (Call)
+    $default  reduce using rule 55 (Call)
 
 
-State 99
+State 97
 
    50 CallArgs: CallArgsTrailed Expression .
    54 CallArgsTrailed: CallArgsTrailed Expression . ','
 
-    ','  shift, and go to state 105
+    ','  shift, and go to state 103
 
     $default  reduce using rule 50 (CallArgs)
 
 
-State 100
+State 98
+
+   24 Stmt: '*' Term assignment Expression . ';'
+
+    ';'  shift, and go to state 104
+
+
+State 99
 
    16 StmtList: StmtList . Stmt
    20 Stmt: IfExprHead StmtList TELSE StmtList . TEND ';'
 
     TIF      shift, and go to state 16
-    TEND     shift, and go to state 106
+    TEND     shift, and go to state 105
     TRETURN  shift, and go to state 17
     TBREAK   shift, and go to state 18
     TCONT    shift, and go to state 19
@@ -1396,10 +1378,10 @@ State 100
     id       shift, and go to state 22
     number   shift, and go to state 23
     '('      shift, and go to state 24
-    '-'      shift, and go to state 25
-    '*'      shift, and go to state 26
+    '*'      shift, and go to state 25
+    '-'      shift, and go to state 26
 
-    Stmt         go to state 56
+    Stmt         go to state 55
     IfExprHead   go to state 29
     LoopHead     go to state 30
     Unary        go to state 31
@@ -1410,54 +1392,53 @@ State 100
     AndExpr      go to state 36
     CompareExpr  go to state 37
     Expression   go to state 38
-    MemAcess     go to state 39
-    Call         go to state 40
-    Term         go to state 41
+    Call         go to state 39
+    Term         go to state 40
 
 
-State 101
+State 100
 
    19 Stmt: IfExprHead StmtList TEND ';' .
 
     $default  reduce using rule 19 (Stmt)
 
 
-State 102
+State 101
 
    21 Stmt: LoopHead StmtList TEND ';' .
 
     $default  reduce using rule 21 (Stmt)
 
 
-State 103
-
-   24 Stmt: MemAcess assignment Expression ';' .
-
-    $default  reduce using rule 24 (Stmt)
-
-
-State 104
+State 102
 
    17 Stmt: TVAR id assignment Expression ';' .
 
     $default  reduce using rule 17 (Stmt)
 
 
-State 105
+State 103
 
    54 CallArgsTrailed: CallArgsTrailed Expression ',' .
 
     $default  reduce using rule 54 (CallArgsTrailed)
 
 
-State 106
+State 104
+
+   24 Stmt: '*' Term assignment Expression ';' .
+
+    $default  reduce using rule 24 (Stmt)
+
+
+State 105
 
    20 Stmt: IfExprHead StmtList TELSE StmtList TEND . ';'
 
-    ';'  shift, and go to state 107
+    ';'  shift, and go to state 106
 
 
-State 107
+State 106
 
    20 Stmt: IfExprHead StmtList TELSE StmtList TEND ';' .
 

@@ -36,11 +36,14 @@ void declare_func(SymbolTree* function);
 void generate_return();
 void assignMemref(SymbolTree* node);
 void setTarget(reginfo* reg);
+
 void instr_assignment(SymbolTree* node);
 void instr_statements(SymbolTree* node);
 void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifend);
 void instr_if(SymbolTree* context, char* endlab);
 void instr_loop(SymbolTree* expr, SymbolTree* loop);
+void instr_memacess(SymbolTree* expr);
+
 void postponeLabelGen(char* lab, SymbolTree* node);
 void finalize(SymbolTree* node);
 void finalizec(SymbolTree* node);

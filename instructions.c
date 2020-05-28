@@ -144,6 +144,26 @@ void instr_statements(SymbolTree* node) {
     }
 } 
 
+// expr contains the expression we want to put into rax
+void instr_memacess(SymbolTree* expr) {
+    // we push the value onto the stack momentarily.
+    printf("\tpushq %%rax\n");
+    // we now perform the labeling and set rax as the target
+    setTarget(getRAX());
+    if(burm_label(expr)) {
+        burm_reduce(expr, 1);
+        // we know that our address resides on the stack and that the expression value is in rax
+        // we pop the addr into rbx
+        printf("\tpopq %%rbx\n");
+        printf("\tmovq %%rax, (%%rbx)\n");
+        // todo test this
+        // snippet:
+        // f(a, b)
+        //   *a := 1;
+        // return 0;
+      }
+}
+
 void postponeLabelGen(char* lab, SymbolTree* node) {
     // we insert into our symLinkedList if we find a free spot otherwise we grow the list
     symLinkedList* cur;

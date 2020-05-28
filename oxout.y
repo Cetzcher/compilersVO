@@ -280,9 +280,9 @@ yyyRSU(21,3,2,6);
 yyyGenIntNode();
  (((yyyP6)yyySTsn)->context) = loopRefNode((((yyyP2)(((char *)((yyySTN->cL)[1]))+yyyGNSz))->sym));
         yyyAdjustINRC(yyyRCIL+90,yyyRCIL+93);/*yyyPrune(21);*/}}
-    | MemAcess assignment Expression ';'
+    | '*' Term assignment Expression ';'
     {if(yyyYok){
-yyyRSU(22,4,2,6);
+yyyRSU(22,5,2,6);
 yyyGenIntNode();
  (((yyyP6)yyySTsn)->context) = metaNode(Assignment);
         yyyAdjustINRC(yyyRCIL+93,yyyRCIL+96);/*yyyPrune(22);*/}}
@@ -442,37 +442,31 @@ yyyAdjustINRC(yyyRCIL+186,yyyRCIL+189);/*yyyPrune(52);*/}}
     ;
 
 
-MemAcess: '*' Term 
-    {if(yyyYok){
-yyyRSU(53,2,1,5);
-yyyGenIntNode();
-yyyAdjustINRC(yyyRCIL+189,yyyRCIL+192);/*yyyPrune(53);*/}};
-
 Call: id '(' CallArgs ')'   {if(yyyYok){
-yyyRSU(54,4,1,5);
+yyyRSU(53,4,1,5);
 yyyGenIntNode();
-yyyAdjustINRC(yyyRCIL+192,yyyRCIL+195);/*yyyPrune(54);*/}}
+yyyAdjustINRC(yyyRCIL+189,yyyRCIL+192);/*yyyPrune(53);*/}}
     ;
 
 
 Term: 
     number                  {if(yyyYok){
-yyyRSU(55,1,1,5);
+yyyRSU(54,1,1,5);
 yyyGenIntNode();
- (((yyyP5)yyySTsn)->ids) = num((((yyyP1)(((char *)((yyySTN->cL)[0]))+yyyGNSz))->value)); yyyAdjustINRC(yyyRCIL+195,yyyRCIL+198);/*yyyPrune(55);*/}}
+ (((yyyP5)yyySTsn)->ids) = num((((yyyP1)(((char *)((yyySTN->cL)[0]))+yyyGNSz))->value)); yyyAdjustINRC(yyyRCIL+192,yyyRCIL+195);/*yyyPrune(54);*/}}
     | '(' Expression ')'  
     {if(yyyYok){
-yyyRSU(56,3,1,5);
+yyyRSU(55,3,1,5);
 yyyGenIntNode();
-yyyAdjustINRC(yyyRCIL+198,yyyRCIL+201);/*yyyPrune(56);*/}}| id                    {if(yyyYok){
-yyyRSU(57,1,1,5);
+yyyAdjustINRC(yyyRCIL+195,yyyRCIL+198);/*yyyPrune(55);*/}}| id                    {if(yyyYok){
+yyyRSU(56,1,1,5);
 yyyGenIntNode();
- (((yyyP5)yyySTsn)->ids) = ID((((yyyP2)(((char *)((yyySTN->cL)[0]))+yyyGNSz))->sym)); yyyAdjustINRC(yyyRCIL+201,yyyRCIL+204);/*yyyPrune(57);*/}}
+ (((yyyP5)yyySTsn)->ids) = ID((((yyyP2)(((char *)((yyySTN->cL)[0]))+yyyGNSz))->sym)); yyyAdjustINRC(yyyRCIL+198,yyyRCIL+201);/*yyyPrune(56);*/}}
     | Call
     {if(yyyYok){
-yyyRSU(58,1,1,5);
+yyyRSU(57,1,1,5);
 yyyGenIntNode();
-yyyAdjustINRC(yyyRCIL+204,yyyRCIL+207);/*yyyPrune(58);*/}};
+yyyAdjustINRC(yyyRCIL+201,yyyRCIL+204);/*yyyPrune(57);*/}};
  
 
 
@@ -567,17 +561,17 @@ yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,0, yyyR,0,1, yyyR,0,2,
 yyyR,0,2, yyyR,0,2, yyyR,0,2, yyyR,0,2, yyyR,0,2, yyyR,0,2, 
 yyyR,0,2, yyyR,0,2, yyyR,0,2, yyyR,0,1, yyyR,0,1, yyyR,0,1, 
 yyyR,0,1, yyyR,0,1, yyyR,0,1, yyyR,0,0, yyyR,0,2, yyyR,0,1, 
-yyyR,0,1, yyyR,0,1, yyyR,0,2, yyyR,0,1, yyyR,0,1, yyyR,0,0, 
-yyyR,0,1, yyyR,0,0, yyyR,0,1, 
+yyyR,0,1, yyyR,0,1, yyyR,0,2, yyyR,0,1, yyyR,0,0, yyyR,0,1, 
+yyyR,0,0, yyyR,0,1, 
 };
 
 short yyyIIIEL[] = {0,
 0,1,3,5,8,16,17,20,22,24,
 27,31,32,34,37,43,48,53,60,65,
-69,73,78,81,85,89,93,95,97,99,
-101,104,107,111,115,119,123,127,131,135,
-139,141,143,145,147,149,151,152,155,157,
-159,162,166,169,174,176,180,182,
+69,73,79,82,86,90,94,96,98,100,
+102,105,108,112,116,120,124,128,132,136,
+140,142,144,146,148,150,152,153,156,158,
+160,163,167,172,174,178,180,
 };
 
 long yyyIIEL[] = {
@@ -587,16 +581,16 @@ long yyyIIEL[] = {
 41,43,45,45,46,46,47,47,49,50,50,51,
 51,53,55,57,57,57,59,61,63,63,65,65,
 65,67,68,70,70,70,72,72,73,73,75,75,
-76,76,78,79,79,80,80,82,83,83,85,85,
-86,86,88,88,89,89,90,91,91,91,92,92,
-93,93,94,94,95,96,97,98,99,100,101,102,
-103,104,104,105,106,107,107,108,109,110,110,111,
-112,113,113,114,115,116,116,117,118,119,119,120,
-121,122,122,123,124,125,125,126,127,128,129,130,
-131,132,133,134,135,136,137,138,139,140,141,142,
-143,144,145,146,147,148,148,149,150,151,151,152,
-152,153,154,155,155,156,156,157,158,159,159,160,
-160,161,162,163,
+76,76,78,78,79,79,80,80,82,83,83,85,
+85,86,86,88,88,89,89,90,91,91,91,92,
+92,93,93,94,94,95,96,97,98,99,100,101,
+102,103,104,104,105,106,107,107,108,109,110,110,
+111,112,113,113,114,115,116,116,117,118,119,119,
+120,121,122,122,123,124,125,125,126,127,128,129,
+130,131,132,133,134,135,136,137,138,139,140,141,
+142,143,144,145,146,147,148,148,149,150,151,151,
+152,153,153,154,154,155,156,157,157,158,158,159,
+160,161,
 };
 
 long yyyIEL[] = {
@@ -619,8 +613,8 @@ long yyyIEL[] = {
 122,122,124,124,126,126,128,128,
 130,130,132,132,132,134,136,136,
 138,138,140,140,142,142,144,146,
-146,148,148,148,150,150,152,152,
-154,154,156,156,158,
+146,146,148,148,150,150,152,152,
+154,154,156,
 };
 
 yyyFT yyyEntL[] = {
@@ -633,7 +627,7 @@ yyyFT yyyEntL[] = {
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 #define yyyPermitUserAlloc  0 
@@ -1139,11 +1133,11 @@ case 22:  /***yacc rule 22***/
     switch (yyywa) {
     }
   break;
-  case 1:  /**/
+  case 2:  /**/
     switch (yyywa) {
     }
   break;
-  case 3:  /**/
+  case 4:  /**/
     switch (yyywa) {
     }
   break;
@@ -1600,21 +1594,6 @@ case 53:  /***yacc rule 53***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
-(((yyyP5)(((char *)yyyRSTopN)+yyyGNSz))->ids) = (((yyyP5)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->ids);
-    break;
-    }
-  break;
-  case 2:  /**/
-    switch (yyywa) {
-    }
-  break;
-  }
-break;
-case 54:  /***yacc rule 54***/
-  switch (yyyws) {
-  case 0:  /**/
-    switch (yyywa) {
-    case 0:
  (((yyyP5)(((char *)yyyRSTopN)+yyyGNSz))->ids) = /*callNode(@id.sym@, @CallArgs.ids@)*/ addChildrenMode(newTree("!Call"), (((yyyP5)(((char *)((yyyRefN->cL)[2]))+yyyGNSz))->ids), FALSE);     break;
     }
   break;
@@ -1628,7 +1607,7 @@ case 54:  /***yacc rule 54***/
   break;
   }
 break;
-case 55:  /***yacc rule 55***/
+case 54:  /***yacc rule 54***/
   switch (yyyws) {
   case 0:  /**/
     switch (yyywa) {
@@ -1640,7 +1619,7 @@ case 55:  /***yacc rule 55***/
   break;
   }
 break;
-case 56:  /***yacc rule 56***/
+case 55:  /***yacc rule 55***/
   switch (yyyws) {
   case 0:  /**/
     switch (yyywa) {
@@ -1655,7 +1634,7 @@ case 56:  /***yacc rule 56***/
   break;
   }
 break;
-case 57:  /***yacc rule 57***/
+case 56:  /***yacc rule 56***/
   switch (yyyws) {
   case 0:  /**/
     switch (yyywa) {
@@ -1667,7 +1646,7 @@ case 57:  /***yacc rule 57***/
   break;
   }
 break;
-case 58:  /***yacc rule 58***/
+case 57:  /***yacc rule 57***/
   switch (yyyws) {
   case 0:  /**/
     switch (yyywa) {
@@ -2583,17 +2562,20 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { {checkSubtreeDeclared((((yyyP6)(((char *)yyyTSTn)+yyyGNSz))->context), (((yyyP5)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->ids)); checkSubtreeDeclared((((yyyP6)(((char *)yyyTSTn)+yyyGNSz))->context), (((yyyP5)(((char *)((yyyTSTn->cL)[2]))+yyyGNSz))->ids)); }
-    }
+if (yyyCond(0) != yyyPass) { {checkSubtreeDeclared((((yyyP6)(((char *)yyyTSTn)+yyyGNSz))->context), (((yyyP5)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids)); checkSubtreeDeclared((((yyyP6)(((char *)yyyTSTn)+yyyGNSz))->context), (((yyyP5)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids)); }
+        }
 				break;
 					}
 		break;
 		case 1:
 			switch(yyyPass)	{
 				case 0:
-yyyRL = 0;
+yyyRL = 0;yyySetCond(0)
+
 				case 1:
 
+if (yyyCond(0) != yyyPass) { {setTarget(getRAX()); instr_memacess((((yyyP5)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids));}
+    }
 				break;
 					}
 		break;
@@ -3739,38 +3721,6 @@ yyyRL = 0;
 			}
 
 break;
-case 58:
-	switch(yyyi)	{ 
-		case 0:
-			switch(yyyPass)	{
-				case 0:
-yyyRL = 0;
-				case 1:
-
-				break;
-					}
-		break;
-		case 1:
-			switch(yyyPass)	{
-				case 0:
-yyyRL = 0;
-				case 1:
-
-				break;
-					}
-		break;
-		case 2:
-			switch(yyyPass)	{
-				case 0:
-yyyRL = 0;
-				case 1:
-
-				break;
-					}
-		break;
-			}
-
-break;
 								} /* switch */ 
    if (yyyPass) goto yyyTpop; else goto yyyTpush; 
   } /* while */ 
@@ -4167,7 +4117,7 @@ void yyyCheckForResizes(argc,argv)
    
 
 
-#define yyyLastProdNum 58
+#define yyyLastProdNum 57
 
 
 #define yyyNsorts 6
@@ -4177,11 +4127,11 @@ int yyyProdsInd[] = {
    0,
    0,   1,   3,   5,   8,  16,  17,  20,  22,  24,
   27,  31,  32,  34,  37,  43,  48,  53,  60,  65,
-  69,  73,  78,  81,  85,  89,  93,  95,  97,  99,
- 101, 104, 107, 111, 115, 119, 123, 127, 131, 135,
- 139, 141, 143, 145, 147, 149, 151, 152, 155, 157,
- 159, 162, 166, 169, 174, 176, 180, 182,
- 184,
+  69,  73,  79,  82,  86,  90,  94,  96,  98, 100,
+ 102, 105, 108, 112, 116, 120, 124, 128, 132, 136,
+ 140, 142, 144, 146, 148, 150, 152, 153, 156, 158,
+ 160, 163, 167, 172, 174, 178, 180,
+ 182,
 };
 
 
@@ -4200,29 +4150,29 @@ int yyyProds[][2] = {
 { 849,   6},{ 775,   0},{ 849,   6},{ 612,   0},{ 548,   0},
 { 235,   6},{ 410,   2},{ 849,   6},{ 612,   0},{ 548,   0},
 { 235,   6},{ 537,   0},{ 907,   2},{ 548,   0},{ 235,   6},
-{ 390,   0},{ 907,   2},{ 548,   0},{ 235,   6},{ 659,   5},
-{ 759,   0},{ 899,   5},{ 548,   0},{ 235,   6},{ 899,   5},
-{ 548,   0},{ 235,   6},{ 945,   0},{ 899,   5},{ 548,   0},
-{ 337,   4},{ 227,   0},{ 899,   5},{ 458,   0},{ 410,   2},
-{ 907,   2},{ 540,   0},{ 718,   0},{ 608,   3},{ 989,   0},
-{ 608,   3},{ 436,   0},{ 608,   3},{ 412,   0},{ 804,   3},
-{ 608,   3},{ 804,   3},{ 804,   3},{ 608,   3},{1103,   5},
-{ 804,   3},{ 997,   5},{ 423,   5},{ 997,   5},{ 420,   0},
-{ 997,   5},{ 423,   5},{ 423,   5},{ 420,   0},{ 997,   5},
-{ 400,   5},{ 997,   5},{ 412,   0},{ 997,   5},{ 400,   5},
-{ 400,   5},{ 412,   0},{ 997,   5},{ 349,   5},{ 997,   5},
-{ 580,   0},{ 997,   5},{ 349,   5},{ 349,   5},{ 580,   0},
-{ 997,   5},{ 363,   5},{ 997,   5},{1002,   0},{ 997,   5},
-{ 363,   5},{ 997,   5},{ 356,   0},{ 997,   5},{ 899,   5},
-{1103,   5},{ 899,   5},{ 423,   5},{ 899,   5},{ 400,   5},
-{ 899,   5},{ 349,   5},{ 899,   5},{ 363,   5},{ 899,   5},
-{ 997,   5},{ 628,   5},{ 628,   5},{1113,   5},{ 899,   5},
-{ 628,   5},{1113,   5},{ 628,   5},{ 899,   5},{1113,   5},
-{ 899,   5},{ 428,   0},{1113,   5},{1113,   5},{ 899,   5},
-{ 428,   0},{ 659,   5},{ 412,   0},{ 997,   5},{ 274,   5},
-{ 907,   2},{ 396,   0},{ 628,   5},{ 404,   0},{ 997,   5},
-{ 972,   1},{ 997,   5},{ 396,   0},{ 899,   5},{ 404,   0},
-{ 997,   5},{ 907,   2},{ 997,   5},{ 274,   5},
+{ 390,   0},{ 907,   2},{ 548,   0},{ 235,   6},{ 412,   0},
+{ 997,   5},{ 759,   0},{ 899,   5},{ 548,   0},{ 235,   6},
+{ 899,   5},{ 548,   0},{ 235,   6},{ 945,   0},{ 899,   5},
+{ 548,   0},{ 337,   4},{ 227,   0},{ 899,   5},{ 458,   0},
+{ 410,   2},{ 907,   2},{ 540,   0},{ 718,   0},{ 608,   3},
+{ 989,   0},{ 608,   3},{ 436,   0},{ 608,   3},{ 412,   0},
+{ 804,   3},{ 608,   3},{ 804,   3},{ 804,   3},{ 608,   3},
+{1103,   5},{ 804,   3},{ 997,   5},{ 423,   5},{ 997,   5},
+{ 420,   0},{ 997,   5},{ 423,   5},{ 423,   5},{ 420,   0},
+{ 997,   5},{ 400,   5},{ 997,   5},{ 412,   0},{ 997,   5},
+{ 400,   5},{ 400,   5},{ 412,   0},{ 997,   5},{ 349,   5},
+{ 997,   5},{ 580,   0},{ 997,   5},{ 349,   5},{ 349,   5},
+{ 580,   0},{ 997,   5},{ 363,   5},{ 997,   5},{1002,   0},
+{ 997,   5},{ 363,   5},{ 997,   5},{ 356,   0},{ 997,   5},
+{ 899,   5},{1103,   5},{ 899,   5},{ 423,   5},{ 899,   5},
+{ 400,   5},{ 899,   5},{ 349,   5},{ 899,   5},{ 363,   5},
+{ 899,   5},{ 997,   5},{ 628,   5},{ 628,   5},{1113,   5},
+{ 899,   5},{ 628,   5},{1113,   5},{ 628,   5},{ 899,   5},
+{1113,   5},{ 899,   5},{ 428,   0},{1113,   5},{1113,   5},
+{ 899,   5},{ 428,   0},{ 274,   5},{ 907,   2},{ 396,   0},
+{ 628,   5},{ 404,   0},{ 997,   5},{ 972,   1},{ 997,   5},
+{ 396,   0},{ 899,   5},{ 404,   0},{ 997,   5},{ 907,   2},
+{ 997,   5},{ 274,   5},
 };
 
 
@@ -4378,7 +4328,7 @@ char *yyyStringTab[] = {
 0,"sym",0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
-0,0,0,0,0,
+0,"memacess",0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,0,
