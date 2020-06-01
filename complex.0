@@ -1,13 +1,22 @@
 f(a, b)
-    // problems we have to solve
-    // sometimes our compare instructions fail if we use stack variables
-    // we need to figure out how we can reserve space for vars that are declared in 
-    // an if-branch
-    // i.e if x then var p := 1; var z := 3; end;
-    // we also need to take extra care of handleing the rbx register since that 
-    // NEEDS to be popped once the function ends.
-    // also take a look at truthy logic
-    b := a + (8 * 8);
-    *b := 1000;
-    return 0;
+    // in a is which fib number we should compute
+    var x0 := 0;
+    var x1 := 1;
+    fib : loop
+        if 0 # a then
+            var tmp := x1;
+            x1 := x0 + x1;
+            x0 := tmp;         
+            a := a + (-1);
+        else
+            var s := 3;
+            break fib;
+        end;
+    end;
+    var last := 300;
+    return x1 + last;
+end;
+
+g(a, b)
+    return 1;
 end;

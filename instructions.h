@@ -9,6 +9,7 @@ typedef struct symLinkedList
     struct symLinkedList* next;
     char* id;
     SymbolTree* nodes;
+    int memrefcount;
 } symLinkedList;
 
 
@@ -44,7 +45,7 @@ void instr_if(SymbolTree* context, char* endlab);
 void instr_loop(SymbolTree* expr, SymbolTree* loop);
 void instr_memacess(SymbolTree* expr);
 
-void postponeLabelGen(char* lab, SymbolTree* node);
+void postponeLabelGen(char* lab, SymbolTree* node, int memrefcount);
 void finalize(SymbolTree* node);
 void finalizec(SymbolTree* node);
 

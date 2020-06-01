@@ -90,8 +90,9 @@ reginfo* memreg(int pos) {
     reginfo* reg = malloc(sizeof(reginfo));
     int offset = 8 * (pos + 1);
     int numdigits = (offset / 10) + 1;
-    char* buf;
-    snprintf(buf, numdigits + 8, "-%d(%%rbp)", offset);
+    int len = numdigits + 8;
+    char* buf  = malloc(sizeof(char) * len);
+    snprintf(buf, len, "-%d(%%rbp)", offset);
     reg->name = buf;
     reg->isfree = 0;
     return reg;
@@ -107,24 +108,37 @@ char* createLable() {
     return name;
 }
 
+int isMemreg(char* name) {
+    return name[0] == '-';
+}
+
+void __emit_reg_or_mem(char* name) {
+    // if the name starts with a minus we do not want a leading %
+    if(isMemreg(name))
+        printf("%s", name);
+    else
+        printf("%%%s", name);
+}
 
 void emit(char* instr, reginfo* src, reginfo* dest) {
-    char* sname = src->name;
-    char* dname = dest->name;
     printf("\t%s ", instr);
-    if(sname[0] == '-')
-        printf("%s, ", sname);
-    else
-        printf("%%%s, ", sname);
-    if(dname[0] == '-')
-        printf("%s", dname);
-    else
-        printf("%%%s", dname);
-    printf("\n");
+    __emit_reg_or_mem(src->name);
+    printf(", ");
+    __emit_reg_or_mem(dest->name);
+    printf("\n");    
 }
 
 void emit_movq(reginfo* src, reginfo* dest) {
-    emit("movq", src, dest);
+    // we cannot perform mov addr, addr
+    // so if src is a memreg we move it to rax first
+    if(src == dest)
+        return;
+    if(isMemreg(src->name)){
+        emit("movq", src, getRAX());
+        emit("movq", getRAX(), dest);
+    } else {
+        emit("movq", src, dest);
+    }
 }
 
 void emit_const_movq(long long val, reginfo* dest) {
@@ -134,4 +148,14 @@ void emit_const_movq(long long val, reginfo* dest) {
     } else {
         printf("\tmovq $%lld, %%%s\n", val, dest->name);
     }
+}
+
+void emit_cmp(reginfo* src, reginfo* dest) {
+    emit("cmp", src, dest);
+}
+
+void emit_const_cmp(long long val, reginfo* dest) {
+    printf("\tcmp $%lld, ", val);
+    __emit_reg_or_mem(dest->name);
+    printf("\n");
 }

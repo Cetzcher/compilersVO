@@ -68,7 +68,7 @@ SymbolTree* newTree2(variable var, int lineno);
 SymbolTree* single2(variable var, int lineno);
 SymbolTree* single(variable var);
 SymbolTree* metaNode(MetaType type);
-SymbolTree* loopNode(SymbolTree* curnode);
+SymbolTree* loopNode(SymbolTree* loophead, SymbolTree* context);
 SymbolTree* loopRefNode(SymbolTree* var);
 SymbolTree* returnNode();
 SymbolTree* func(SymbolTree* name, SymbolTree* params, SymbolTree* body);

@@ -1,0 +1,5 @@
+//@return 10
+f(a, b)
+    return 10;
+end;
+    

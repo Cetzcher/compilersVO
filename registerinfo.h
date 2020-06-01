@@ -21,7 +21,9 @@ reginfo* memreg(int pos);
 void emit(char* instr, reginfo* src, reginfo* dest);
 void emit_movq(reginfo* src, reginfo* dest);
 void emit_const_movq(long long val, reginfo* dest);
-
+void emit_cmp(reginfo* src, reginfo* dest);
+void emit_cmp(reginfo* src, reginfo* dest);
+void emit_const_cmp(long long val, reginfo* dest);
 
 
 #endif

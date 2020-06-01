@@ -93,13 +93,17 @@ void instr_if(SymbolTree* expr, char* endlab) {
 
 void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifendlab) {
     // we know that an ifelse node has exactly two statements chidren
-    // we mark both for a label, expr contains the expr we want to test
+    // we mark the else node for a label, expr contains the expr we want to test
     char* elsepath = createLable();
     SymbolTree* elsepathnode = context->children[1];
     int len = strlen(elsepath) + strlen(ifendlab) + 8;
     char* instr = malloc(sizeof(char) * len);
     snprintf(instr, len,  "\tjmp %s\n%s:\n", ifendlab, elsepath);
-    postponeLabelGen(instr, elsepathnode);
+    // we also keep track of how many variables on the stack are used.
+    // consider this:
+    // if a then var x:= 1; var y:=2 else var p:=3;
+    // x should be at 8 * (1 + count), y at 8 * (2 + count) and p again at 8 * (1 + count)
+    postponeLabelGen(instr, elsepathnode, memrefInContext);
     setTarget(getRAX());
     if(burm_label(expr)) {
          burm_reduce(expr, 1); 
@@ -123,20 +127,24 @@ void instr_loop(SymbolTree* context, SymbolTree* loop) {
     int len = strlen(loop->var) + 7;
     char* endlab = malloc(sizeof(char) * len);
     snprintf(endlab, len, "__end%s:\n", loop);
-    postponeLabelGen(endlab, context->children[index + 1]);
+    postponeLabelGen(endlab, context->children[index + 1], memrefInContext);
 }
 
 void instr_statements(SymbolTree* node) {
     // this is a very hacky construct, basically we iterate the symLinkedList and comprae each element with node
-    // if we find  it, we delete if from the linked list and insert the associated label. this is done for handeling if stmts else stmts
+    // if we find  it, we delete if from the linked list and insert the associated label. this is done for handeling if else stmts
     // mainly for inserting the else label
     symLinkedList* cur = start;
     while(cur != NULL)
     {
         if(cur->nodes == node) {
+            // print the postponed instructions
+            // we also set memrefinContext back 
+            memrefInContext = cur->memrefcount;
             printf("%s\n", cur->id);
             // remove the node 
             cur->nodes = NULL;
+            cur->memrefcount = 0;
             cur->id = NULL;
             return;
         }
@@ -156,21 +164,18 @@ void instr_memacess(SymbolTree* expr) {
         // we pop the addr into rbx
         printf("\tpopq %%rbx\n");
         printf("\tmovq %%rax, (%%rbx)\n");
-        // todo test this
-        // snippet:
-        // f(a, b)
-        //   *a := 1;
-        // return 0;
+
       }
 }
 
-void postponeLabelGen(char* lab, SymbolTree* node) {
+void postponeLabelGen(char* lab, SymbolTree* node, int memrefcount) {
     // we insert into our symLinkedList if we find a free spot otherwise we grow the list
     symLinkedList* cur;
     for(cur = start; cur->next != NULL; cur = cur->next) {
         if(cur->nodes == NULL) {
             cur->nodes = node;
             cur->id = lab; 
+            cur->memrefcount = memrefcount;
             return;
         }
     }
@@ -178,6 +183,7 @@ void postponeLabelGen(char* lab, SymbolTree* node) {
     symLinkedList* lstnode = createSymLinkedList();
     lstnode->nodes = node;
     lstnode->id = lab;
+    lstnode->memrefcount = memrefcount;
     cur->next = lstnode;
 }
 
@@ -320,7 +326,11 @@ void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     reginfo* target = getTempReg();
     char* lab = createLable();
     char* comparefin = createLable();
-    printf("\tcmp %%%s, %%%s\n", REG(rhs), REG(lhs));   
+    setTarget(getRAX());
+    // cmp allows only one operand in memory we therefor need to put
+    // lhs into rax or some other register
+    finalize(lhs);
+    emit_cmp(SYMREG(rhs), getRAX());
     printf("\tjg %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -334,7 +344,9 @@ void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     reginfo* target = getTempReg();
     char* lab = createLable();
     char* comparefin = createLable();
-    printf("\tcmp $%lld, %%%s\n", constant->value, REG(lhs));   
+    setTarget(getRAX());
+    finalize(lhs);
+    emit_const_cmp(constant->value, getRAX());
     printf("\tjg %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -350,8 +362,9 @@ void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
     reginfo* target = getTempReg();
     char* lab = createLable();
     char* comparefin = createLable();
-
-    printf("\tcmp $%lld, %%%s\n", constant->value, REG(arg));   
+    setTarget(getRAX());
+    finalize(arg);
+    emit_const_cmp(constant->value, getRAX());
     printf("\tjl %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -366,7 +379,11 @@ void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     reginfo* target = getTempReg();
     char* eqlab = createLable();
     char* aftercompare = createLable();
-    printf("\tcmp %%%s, %%%s\n", REG(lhs), REG(rhs));
+    setTarget(getRAX());
+    // cmp allows only one operand in memory we therefor need to put
+    // rhs into rax or some other register
+    finalize(rhs);
+    emit_cmp(SYMREG(lhs), getRAX());
     printf("\tje %s\n", eqlab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercompare);
@@ -381,7 +398,9 @@ void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     reginfo* target = getTempReg();
     char* eqlab = createLable();
     char* aftercomp = createLable();
-    printf("\tcmp $%lld, %%%s\n", constant->value, REG(lhs));
+    setTarget(getRAX());
+    finalize(lhs);
+    emit_const_cmp(constant->value, getRAX());
     printf("\tje %s\n", eqlab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercomp);

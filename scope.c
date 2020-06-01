@@ -86,9 +86,11 @@ SymbolTree* returnNode() {
     return metaNode(Return);
 }
 
-SymbolTree* loopNode(SymbolTree* curnode){
-    curnode->type = Loop;
-    return curnode;
+// addChildren(loopNode(@LoopHead.sym@), @StmtList.context@);
+SymbolTree* loopNode(SymbolTree* loophead, SymbolTree* context) {
+    loophead->type = Loop;
+    loophead->declaredVars = context->declaredVars;
+    return addChildren(loophead, context);
 }
 
 SymbolTree* loopRefNode(SymbolTree* node) {

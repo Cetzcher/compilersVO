@@ -119,7 +119,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = @StmtList.context@;
         @t checkSubtreeDeclared(@Stmt.context@, @IfExprHead.ids@);
-        @codegen instr_if(@IfExprHead.ids@, @IfExprHead.closelab@);
+        @codegen instr_if(@IfExprHead.ids@, @IfExprHead.closelab@) ;
         @codegen @revorder(1) printf("%s:\n", @IfExprHead.closelab@);
     @}
     | IfExprHead StmtList TELSE StmtList TEND ';'
@@ -131,10 +131,10 @@ Stmt: TVAR id assignment Expression    ';'
     @}
     | LoopHead StmtList TEND ';'
     @{
-        @i @Stmt.context@ = addChildren(loopNode(@LoopHead.sym@), @StmtList.context@);
+        @i @Stmt.context@ = loopNode(@LoopHead.sym@, @StmtList.context@);
         @t checkLoopUnique(@LoopHead.sym@);
         @codegen printf("__%s:\n", @LoopHead.sym@->var);
-        @codegen @revorder(1) printf("__end%s:\n", @LoopHead.sym@->var);
+        @codegen @revorder(1) printf("\tjmp __%s # loops \n __end%s:\n", @LoopHead.sym@->var, @LoopHead.sym@->var);
     @}
     | TBREAK id ';'
     @{

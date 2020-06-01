@@ -2800,7 +2800,7 @@ case 19:  /***yacc rule 19***/
   case 0:  /**/
     switch (yyywa) {
     case 0:
- (((yyyP6)(((char *)yyyRSTopN)+yyyGNSz))->context) = addChildren(loopNode((((yyyP2)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->sym)), (((yyyP6)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->context));
+ (((yyyP6)(((char *)yyyRSTopN)+yyyGNSz))->context) = loopNode((((yyyP2)(((char *)((yyyRefN->cL)[0]))+yyyGNSz))->sym), (((yyyP6)(((char *)((yyyRefN->cL)[1]))+yyyGNSz))->context));
             break;
     }
   break;
@@ -4083,7 +4083,7 @@ if (! (1)) yyySetCond(2)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { instr_if((((yyyP4)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->ids), (((yyyP4)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->closelab));
+if (yyyCond(0) != yyyPass) { instr_if((((yyyP4)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->ids), (((yyyP4)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->closelab)) ;
         }
 if (yyyCond(1) != yyyPass) { }
 if (yyyCond(2) != yyyPass) { printf("%s:\n", (((yyyP4)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->closelab));
@@ -4174,7 +4174,7 @@ if (! (1)) yyySetCond(2)
 if (yyyCond(0) != yyyPass) { printf("__%s:\n", (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->var);
         }
 if (yyyCond(1) != yyyPass) { }
-if (yyyCond(2) != yyyPass) { printf("__end%s:\n", (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->var);
+if (yyyCond(2) != yyyPass) { printf("\tjmp __%s # loops \n __end%s:\n", (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->var, (((yyyP2)(((char *)((yyyTSTn->cL)[0]))+yyyGNSz))->sym)->var);
     }
 				break;
 					}
@@ -5996,7 +5996,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,"TTHEN",0,
-0,0,0,0,0,
+0,0,"loops",0,0,
 0,0,0,0,0,
 0,0,0,0,0,
 0,"printf",0,0,"single2",
@@ -6018,7 +6018,7 @@ char *yyyStringTab[] = {
 0,0,0,0,0,
 0,0,0,0,0,
 0,0,0,0,"atoi",
-0,0,"addChildren",0,0,
+0,0,0,0,0,
 0,0,0,0,0,
 "TAND",0,0,0,0,
 0,0,0,0,0,
