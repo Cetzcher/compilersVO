@@ -43,7 +43,7 @@ void instr_statements(SymbolTree* node);
 void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifend);
 void instr_if(SymbolTree* context, char* endlab);
 void instr_loop(SymbolTree* expr, SymbolTree* loop);
-void instr_memacess(SymbolTree* expr);
+void instr_memacess(SymbolTree* lexpr, SymbolTree* expr);
 
 void postponeLabelGen(char* lab, SymbolTree* node, int memrefcount);
 void finalize(SymbolTree* node);

@@ -4288,7 +4288,7 @@ yyyRL = 0;yyySetCond(0)
 
 				case 1:
 
-if (yyyCond(0) != yyyPass) { {setTarget(getRAX()); instr_memacess((((yyyP5)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids));}
+if (yyyCond(0) != yyyPass) { { instr_memacess((((yyyP5)(((char *)((yyyTSTn->cL)[1]))+yyyGNSz))->ids), (((yyyP5)(((char *)((yyyTSTn->cL)[3]))+yyyGNSz))->ids));}
     }
 				break;
 					}

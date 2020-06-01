@@ -153,7 +153,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{
         @i @Stmt.context@ = metaNode(Assignment);
         @t {checkSubtreeDeclared(@Stmt.context@, @Term.ids@); checkSubtreeDeclared(@Stmt.context@, @Expression.ids@); }
-        @codegen {setTarget(getRAX()); instr_memacess(@Expression.ids@);}
+        @codegen { instr_memacess(@Term.ids@, @Expression.ids@);}
     @}
     | Expression   ';'                     
     @{ 

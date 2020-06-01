@@ -18,5 +18,66 @@ f(a, b)
 end;
 
 g(a, b)
-    return 1;
+    //  divide a/b
+    var cur := a;
+    var cnt := 0;
+    var rest := 0; 
+    div: loop
+        rest := cur;
+        cur := cur + (-b);  
+        if 0 <= cur then       
+            cnt := cnt + 1;     
+        else
+            break div;
+        end;
+    end;
+    return cnt;
+end;
+
+
+isPrime(a)
+    // a contains a number we want to see if it is prime
+    // we loop from 2 to a-1 with a number loopCount, we divide a/loopCount if it is 0 i.e no rest the number is not prime
+    var loopCount := 2;
+    checkPrime: loop
+        if loopCount <= (a + (-1)) then
+            // check if number is prime
+            // we do this by dividing and getting the rest of the division
+            var rest := 0;
+            var cur := a;
+            var cnt := 0;
+            div1: loop
+                rest := cur;
+                cur := cur + (-loopCount);
+                if (cur <= 0) and (cur #  0) then
+                    break div1;
+                end;
+            end;
+            // rest now contains an integer, if it is 0 the number is not prime
+            if (rest <= 0) and (0 <= rest) then
+                return 0;
+            end;
+            loopCount := loopCount + 1;
+        else
+            return 1; // number is prime
+        end;
+    end;
+end;
+
+divwithrest(a, b, lrest)
+    // a contains a number and b a divisor we want to see what the rest is
+    var cur := a;
+    var cnt := 0;
+    var rest := 0; 
+    divrest: loop
+        rest := cur;
+        cur := cur + (-b);  
+        if 0 <= cur then       
+            cnt := cnt + 1;     
+        else
+            break divrest;
+        end;
+    end;
+    *lrest := rest;
+    return cnt;
 end;

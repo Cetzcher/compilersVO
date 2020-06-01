@@ -1,6 +1,7 @@
 #include "registerinfo.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 
 reginfo rax ;
@@ -121,6 +122,8 @@ void __emit_reg_or_mem(char* name) {
 }
 
 void emit(char* instr, reginfo* src, reginfo* dest) {
+    if(strcmp(instr, "movq") == 0 && src == dest)
+        return;
     printf("\t%s ", instr);
     __emit_reg_or_mem(src->name);
     printf(", ");
@@ -131,11 +134,10 @@ void emit(char* instr, reginfo* src, reginfo* dest) {
 void emit_movq(reginfo* src, reginfo* dest) {
     // we cannot perform mov addr, addr
     // so if src is a memreg we move it to rax first
-    if(src == dest)
-        return;
     if(isMemreg(src->name)){
-        emit("movq", src, getRAX());
-        emit("movq", getRAX(), dest);
+        reginfo* temp = getTempReg();
+        emit("movq", src, temp);
+        emit("movq", temp, dest);
     } else {
         emit("movq", src, dest);
     }
@@ -143,7 +145,7 @@ void emit_movq(reginfo* src, reginfo* dest) {
 
 void emit_const_movq(long long val, reginfo* dest) {
     // TODO: remove this abomination.
-    if(dest->name[0] == '-') {
+    if(isMemreg(dest->name)) {
         printf("\tmovq $%lld, %s\n", val, dest->name);
     } else {
         printf("\tmovq $%lld, %%%s\n", val, dest->name);
@@ -151,10 +153,24 @@ void emit_const_movq(long long val, reginfo* dest) {
 }
 
 void emit_cmp(reginfo* src, reginfo* dest) {
+    if(isMemreg(dest->name)) {
+        // if our destination is a memory register we need to 
+        // we need to use some other register.
+        reginfo* temp = getTempReg();    // this register is only used for the compare instruction
+        emit_movq(dest, temp);
+        dest = temp;    // we can continue as if our dest register is the temp register.
+    }
     emit("cmp", src, dest);
 }
 
 void emit_const_cmp(long long val, reginfo* dest) {
+        if(isMemreg(dest->name)) {
+        // if our destination is a memory register we need to 
+        // we need to use some other register.
+        reginfo* temp = getTempReg();    // this register is only used for the compare instruction
+        emit_movq(dest, temp);
+        dest = temp;    // we can continue as if our dest register is the temp register.
+    }
     printf("\tcmp $%lld, ", val);
     __emit_reg_or_mem(dest->name);
     printf("\n");

@@ -1,1 +1,1 @@
-make && ./codea < complex.0 > res.s && gcc res.s bundle.c && ./a.out && echo "code was:" && cat complex.0
+make && ./codea < complex.0 > res.s && gcc res.s bundle.c && ./a.out 

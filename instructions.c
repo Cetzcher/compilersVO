@@ -15,7 +15,7 @@
 const char* stackpointer = "%rsp";
 const char* basepointer = "%rbp";
 const symLinkedList* start;
-
+int memrefInContext = 0;
 
 void init_codegen(SymbolTree* rootlevel) {
     initregs();
@@ -30,6 +30,7 @@ void init_codegen(SymbolTree* rootlevel) {
 
 void declare_func(SymbolTree* function) {
     printf("%s: ##    Function     (no. of params: %d, declared vars: %d) ##\n", function->var, function->parameters, function->declaredVars);
+    memrefInContext = 0;
     const int reservedSpace = function->declaredVars;
     // reserve space on the stack
     // save call frame
@@ -53,7 +54,6 @@ void declare_func(SymbolTree* function) {
     printf("\n");
 }
 
-int memrefInContext = 0;
 void assignMemref(SymbolTree* node) {
     // we also want to create a memory "register"
     node->assignedRegister = memreg(memrefInContext);
@@ -152,18 +152,23 @@ void instr_statements(SymbolTree* node) {
     }
 } 
 
-// expr contains the expression we want to put into rax
-void instr_memacess(SymbolTree* expr) {
+void instr_memacess(SymbolTree* lexpr, SymbolTree* expr) {
     // we push the value onto the stack momentarily.
-    printf("\tpushq %%rax\n");
+    // we handle lexpr first.
+    setTarget(getRAX());
+    if(burm_label(lexpr)) {
+        burm_reduce(lexpr, 1);
+    }
+    // rax now contains the address, we need to load it and store it in rax again
+    printf("\tpushq %%rax\n");  // push it onto the stack for the moment.
     // we now perform the labeling and set rax as the target
     setTarget(getRAX());
     if(burm_label(expr)) {
         burm_reduce(expr, 1);
         // we know that our address resides on the stack and that the expression value is in rax
         // we pop the addr into rbx
-        printf("\tpopq %%rbx\n");
-        printf("\tmovq %%rax, (%%rbx)\n");
+        printf("\tpopq %%rbx\n");   // rbx now contains previously loaded address
+        printf("\tmovq %%rax, (%%rbx)\n"); // move value into rbx
 
       }
 }
@@ -324,13 +329,10 @@ void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     // check if lhs <= rhs
     // ie if lhs =src2 - rhs=src1 >= 0 set -1 otherwise set 0
     reginfo* target = getTempReg();
+    target->isfree = 0; // we need to mark it occupied before the cmp call
     char* lab = createLable();
     char* comparefin = createLable();
-    setTarget(getRAX());
-    // cmp allows only one operand in memory we therefor need to put
-    // lhs into rax or some other register
-    finalize(lhs);
-    emit_cmp(SYMREG(rhs), getRAX());
+    emit_cmp(SYMREG(rhs), SYMREG(lhs));
     printf("\tjg %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -342,11 +344,10 @@ void lessthan(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
 void lessthanc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
     reginfo* target = getTempReg();
+    target->isfree = 0; // we need to mark it occupied before the cmp call
     char* lab = createLable();
     char* comparefin = createLable();
-    setTarget(getRAX());
-    finalize(lhs);
-    emit_const_cmp(constant->value, getRAX());
+    emit_const_cmp(constant->value, SYMREG(lhs));
     printf("\tjg %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -360,11 +361,10 @@ void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
     // we need to invert our result so we generate a NOTQ instruction afterwards
     LINK(arg);
     reginfo* target = getTempReg();
+    target->isfree = 0; // we need to mark it occupied before the cmp call
     char* lab = createLable();
     char* comparefin = createLable();
-    setTarget(getRAX());
-    finalize(arg);
-    emit_const_cmp(constant->value, getRAX());
+    emit_const_cmp(constant->value, SYMREG(arg));
     printf("\tjl %s\n", lab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", comparefin);
@@ -377,13 +377,12 @@ void lessthancr(SymbolTree* res, SymbolTree* constant, SymbolTree* arg) {
 void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
     LINK_VARS
     reginfo* target = getTempReg();
+    target->isfree = 0; // we need to mark it occupied before the cmp call
     char* eqlab = createLable();
     char* aftercompare = createLable();
-    setTarget(getRAX());
     // cmp allows only one operand in memory we therefor need to put
     // rhs into rax or some other register
-    finalize(rhs);
-    emit_cmp(SYMREG(lhs), getRAX());
+    emit_cmp(SYMREG(lhs), SYMREG(rhs));
     printf("\tje %s\n", eqlab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercompare);
@@ -396,11 +395,10 @@ void notequal(SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
 void notequalc(SymbolTree* res, SymbolTree* lhs, SymbolTree* constant) {
     LINK_UNARY
     reginfo* target = getTempReg();
+    target->isfree = 0;
     char* eqlab = createLable();
     char* aftercomp = createLable();
-    setTarget(getRAX());
-    finalize(lhs);
-    emit_const_cmp(constant->value, getRAX());
+    emit_const_cmp(constant->value, SYMREG(lhs));
     printf("\tje %s\n", eqlab);
     printf("\tMOVQ $-1, %%%s\n", target->name);
     printf("\tjmp %s\n", aftercomp);
