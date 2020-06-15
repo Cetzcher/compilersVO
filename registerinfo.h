@@ -12,9 +12,9 @@ void initregs();
 reginfo* getNextFree();
 reginfo* getArgRegister(int arg);
 reginfo* getRAX();
-reginfo* getRBX();
 reginfo* getR11();
 reginfo* getTempReg();
+reginfo* getTempNotRAX();
 char* createLable();
 reginfo* memreg(int pos);
 // instructions for controlling registers are here
@@ -24,6 +24,4 @@ void emit_const_movq(long long val, reginfo* dest);
 void emit_cmp(reginfo* src, reginfo* dest);
 void emit_cmp(reginfo* src, reginfo* dest);
 void emit_const_cmp(long long val, reginfo* dest);
-
-
 #endif

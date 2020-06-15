@@ -1,8 +1,16 @@
-f(a, b)
+fib(a, b, cnt)
+    if cnt <= 0 then
+        return b;
+    else
+        return fib(b, a + b, cnt + (-1));
+    end;
+end;
+
+ fib2(a, b)
     // in a is which fib number we should compute
     var x0 := 0;
     var x1 := 1;
-    fib : loop
+    fib3 : loop
         if 0 # a then
             var tmp := x1;
             x1 := x0 + x1;
@@ -10,74 +18,86 @@ f(a, b)
             a := a + (-1);
         else
             var s := 3;
-            break fib;
+            break fib3;
         end;
     end;
     var last := 300;
     return x1 + last;
 end;
+ 
+ g(a, b)
+     //  divide a/b
+     var cur := a;
+     var cnt := 0;
+     var rest := 0; 
+     div: loop
+         rest := cur;
+         cur := cur + (-b);  
+         if 0 <= cur then       
+             cnt := cnt + 1;     
+         else
+             break div;
+         end;
+     end;
+     return cnt;
+ end;
+ 
+ 
+ isPrime(a)
+     // a contains a number we want to see if it is prime
+     // we loop from 2 to a-1 with a number loopCount, we divide a/loopCount if it is 0 i.e no rest the number is not prime
+     var loopCount := 2;
+     checkPrime: loop
+         if loopCount <= (a + (-1)) then
+             // check if number is prime
+             // we do this by dividing and getting the rest of the division
+             var rest := 0;
+             var cur := a;
+             var cnt := 0;
+             div1: loop
+                 rest := cur;
+                 cur := cur + (-loopCount);
+                 if (cur <= 0) and (cur #  0) then
+                     break div1;
+                 end;
+             end;
+             // rest now contains an integer, if it is 0 the number is not prime
+             if (rest <= 0) and (0 <= rest) then
+                 return 0;
+             end;
+             loopCount := loopCount + 1;
+         else
+             return 1; // number is prime
+         end;
+     end;
+ end;
+ 
+ divwithrest(a, b, lrest)
+     // a contains a number and b a divisor we want to see what the rest is
+     var cur := a;
+     var cnt := 0;
+     var rest := 0; 
+     divrest: loop
+         rest := cur;
+         cur := cur + (-b);  
+         if 0 <= cur then       
+             cnt := cnt + 1;     
+         else
+             break divrest;
+         end;
+     end;
+     *lrest := rest;
+     return cnt;
+ end;
 
-g(a, b)
-    //  divide a/b
-    var cur := a;
-    var cnt := 0;
-    var rest := 0; 
-    div: loop
-        rest := cur;
-        cur := cur + (-b);  
-        if 0 <= cur then       
-            cnt := cnt + 1;     
-        else
-            break div;
-        end;
-    end;
-    return cnt;
-end;
+const1() return 1; end;
+const2() return 2; end;
+const3() return 3; end;
 
-
-isPrime(a)
-    // a contains a number we want to see if it is prime
-    // we loop from 2 to a-1 with a number loopCount, we divide a/loopCount if it is 0 i.e no rest the number is not prime
-    var loopCount := 2;
-    checkPrime: loop
-        if loopCount <= (a + (-1)) then
-            // check if number is prime
-            // we do this by dividing and getting the rest of the division
-            var rest := 0;
-            var cur := a;
-            var cnt := 0;
-            div1: loop
-                rest := cur;
-                cur := cur + (-loopCount);
-                if (cur <= 0) and (cur #  0) then
-                    break div1;
-                end;
-            end;
-            // rest now contains an integer, if it is 0 the number is not prime
-            if (rest <= 0) and (0 <= rest) then
-                return 0;
-            end;
-            loopCount := loopCount + 1;
-        else
-            return 1; // number is prime
-        end;
-    end;
-end;
-
-divwithrest(a, b, lrest)
-    // a contains a number and b a divisor we want to see what the rest is
-    var cur := a;
-    var cnt := 0;
-    var rest := 0; 
-    divrest: loop
-        rest := cur;
-        cur := cur + (-b);  
-        if 0 <= cur then       
-            cnt := cnt + 1;     
-        else
-            break divrest;
-        end;
-    end;
-    *lrest := rest;
-    return cnt;
+calltest()
+    var p1 := 11;
+    var p2 := 13;
+    var p3 := 27;
+    var primes := (const1() * const3() * const3()) + isPrime(11);
+    return primes;
 end;

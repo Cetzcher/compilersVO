@@ -14,7 +14,7 @@
 %}
 
 %start expr
-%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11 OP_MEMACESS = 12
+%term      OP_NOP = 0 OP_PLUS = 1 OP_MINUS = 2 OP_NUM = 3 OP_VAR = 4 OP_ZERO = 5 OP_ONE = 6 OP_MULT = 7 OP_HASH = 8 OP_LTEQ = 9 OP_AND = 10 OP_NOT = 11 OP_MEMACESS = 12 OP_CALL = 13
 %%
 
 expr: const                     # 0 #   finalizec(bnode);
@@ -56,7 +56,7 @@ reg: OP_LTEQ(const, reg)    # 4 # lessthancr(UNPACK_3);
 reg: OP_HASH(reg, reg)      # 4 # notequal(UNPACK_3);
 reg: OP_HASH(reg, const)    # 4 # notequalc(UNPACK_3);
 reg: OP_HASH(const, reg)    # 4 # notequalcr(UNPACK_3);
-
+reg: OP_CALL                # 4 # instr_call(UNPACK_2);
 
 reg: OP_VAR               # 1 # 
 reg: im                   # 5 # imtoreg(UNPACK_2);

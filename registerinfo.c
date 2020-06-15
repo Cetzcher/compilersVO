@@ -69,9 +69,6 @@ reginfo* getRAX() {
     return &rax;
 }
 
-reginfo* getRBX() {
-    return &rbx;
-}
 
 reginfo* getR11() {
     return &r11;
@@ -80,10 +77,18 @@ reginfo* getR11() {
 reginfo* getTempReg() {
     if(rax.isfree)
         return &rax;
-    else if(rbx.isfree)
-        return &rbx;        // need to save rbx at some point
     else if(r10.isfree)
-        return &r10;
+        return &r10;      
+    else if(r11.isfree)
+        return &r11;
+    return NULL;
+}
+
+reginfo* getTempNotRAX() {
+    if(r10.isfree)
+        return &r10;      
+    else if(r11.isfree)
+        return &r11;
     return NULL;
 }
 
@@ -134,7 +139,7 @@ void emit(char* instr, reginfo* src, reginfo* dest) {
 void emit_movq(reginfo* src, reginfo* dest) {
     // we cannot perform mov addr, addr
     // so if src is a memreg we move it to rax first
-    if(isMemreg(src->name)){
+    if(isMemreg(src->name) && isMemreg(dest->name)){
         reginfo* temp = getTempReg();
         emit("movq", src, temp);
         emit("movq", temp, dest);

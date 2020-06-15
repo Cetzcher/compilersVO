@@ -81,9 +81,10 @@ short *burm_nts[] = {
 	burm_nts_6,	/* 27 */
 	burm_nts_5,	/* 28 */
 	burm_nts_2,	/* 29 */
-	burm_nts_7,	/* 30 */
-	burm_nts_6,	/* 31 */
-	burm_nts_8,	/* 32 */
+	burm_nts_2,	/* 30 */
+	burm_nts_7,	/* 31 */
+	burm_nts_6,	/* 32 */
+	burm_nts_8,	/* 33 */
 };
 
 char burm_arity[] = {
@@ -100,6 +101,7 @@ char burm_arity[] = {
 	2,	/* 10=OP_AND */
 	1,	/* 11=OP_NOT */
 	1,	/* 12=OP_MEMACESS */
+	0,	/* 13=OP_CALL */
 };
 
 static short burm_decode_expr[] = {
@@ -142,12 +144,13 @@ static short burm_decode_reg[] = {
 	28,
 	29,
 	30,
+	31,
 };
 
 static short burm_decode_im[] = {
 	0,
-	31,
 	32,
+	33,
 };
 
 int burm_rule(STATE_TYPE state, int goalnt) {
@@ -186,7 +189,7 @@ static void burm_closure_reg(struct burm_state *p, int c) {
 static void burm_closure_im(struct burm_state *p, int c) {
 	if (c + 5 < p->cost[burm_reg_NT]) {
 		p->cost[burm_reg_NT] = c + 5;
-		p->rule.burm_reg = 20;
+		p->rule.burm_reg = 21;
 		burm_closure_reg(p, c + 5);
 	}
 }
@@ -318,7 +321,7 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 				},{
 					2,	/* expr: reg */
 					0,
-					19,	/* reg: OP_VAR */
+					20,	/* reg: OP_VAR */
 					0,
 				}
 			};
@@ -536,6 +539,23 @@ STATE_TYPE burm_state(int op, STATE_TYPE left, STATE_TYPE right) {
 			}
 		}
 		break;
+	case 13: /* OP_CALL */
+		{
+			static struct burm_state z = { 13, 0, 0,
+				{	0,
+					4,	/* expr: reg */
+					32767,
+					4,	/* reg: OP_CALL */
+					32767,
+				},{
+					2,	/* expr: reg */
+					0,
+					19,	/* reg: OP_CALL */
+					0,
+				}
+			};
+			return (STATE_TYPE)&z;
+		}
 	default:
 		burm_assert(0, PANIC("Bad operator %d in burm_state\n", op));
 	}
@@ -573,16 +593,17 @@ NODEPTR_TYPE *burm_kids(NODEPTR_TYPE p, int eruleno, NODEPTR_TYPE kids[]) {
 	burm_assert(p, PANIC("NULL tree in burm_kids\n"));
 	burm_assert(kids, PANIC("NULL kids in burm_kids\n"));
 	switch (eruleno) {
-	case 30: /* reg: im */
+	case 31: /* reg: im */
 	case 2: /* expr: reg */
 	case 1: /* expr: const */
 		kids[0] = p;
 		break;
-	case 29: /* reg: OP_VAR */
+	case 30: /* reg: OP_VAR */
+	case 29: /* reg: OP_CALL */
 	case 3: /* const: OP_NUM */
 		break;
-	case 32: /* im: OP_PLUS(im,const) */
-	case 31: /* im: OP_PLUS(reg,const) */
+	case 33: /* im: OP_PLUS(im,const) */
+	case 32: /* im: OP_PLUS(reg,const) */
 	case 28: /* reg: OP_HASH(const,reg) */
 	case 27: /* reg: OP_HASH(reg,const) */
 	case 26: /* reg: OP_HASH(reg,reg) */
@@ -747,15 +768,18 @@ void burm_reduce(NODEPTR_TYPE bnode, int goalnt)
  notequalcr(UNPACK_3);
     break;
   case 29:
- 
+ instr_call(UNPACK_2);
     break;
   case 30:
- imtoreg(UNPACK_2);
+ 
     break;
   case 31:
- imadd(UNPACK_3);
+ imtoreg(UNPACK_2);
     break;
   case 32:
+ imadd(UNPACK_3);
+    break;
+  case 33:
  imadd(UNPACK_3);
     break;
   default:    assert (0);

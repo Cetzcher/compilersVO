@@ -26,7 +26,8 @@ enum Ops {
     OP_LTEQ = 9,
     OP_AND = 10,
     OP_NOT = 11,
-    OP_MEMACESS = 12
+    OP_MEMACESS = 12,
+    OP_CALL = 13
 };
 
 symLinkedList* createSymLinkedList();
@@ -44,6 +45,7 @@ void instr_ifelse(SymbolTree* context, SymbolTree* expr, char* ifend);
 void instr_if(SymbolTree* context, char* endlab);
 void instr_loop(SymbolTree* expr, SymbolTree* loop);
 void instr_memacess(SymbolTree* lexpr, SymbolTree* expr);
+void instr_call(SymbolTree* res, SymbolTree* call);
 
 void postponeLabelGen(char* lab, SymbolTree* node, int memrefcount);
 void finalize(SymbolTree* node);

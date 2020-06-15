@@ -63,6 +63,8 @@ typedef SymbolTree* Sympointer;
 #define STATE_LABEL(p)  	((p)->stateLabel)
 #define PANIC			    printf
 
+
+SymbolTree* callNode(SymbolTree* n); 
 SymbolTree* newTree(variable var);
 SymbolTree* newTree2(variable var, int lineno);
 SymbolTree* single2(variable var, int lineno);
@@ -72,7 +74,9 @@ SymbolTree* loopNode(SymbolTree* loophead, SymbolTree* context);
 SymbolTree* loopRefNode(SymbolTree* var);
 SymbolTree* returnNode();
 SymbolTree* func(SymbolTree* name, SymbolTree* params, SymbolTree* body);
+SymbolTree* paramWithOp(SymbolTree* before, SymbolTree* cur, MetaType type);
 SymbolTree* param(SymbolTree* before, SymbolTree* cur);
+SymbolTree* exprparam(SymbolTree* before, SymbolTree* cur);
 SymbolTree* decl(SymbolTree* node);
 SymbolTree* statements(SymbolTree* stmts, SymbolTree* stmt);
 SymbolTree* num(long val);
@@ -87,6 +91,7 @@ SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs);
 SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, boolean validate_tree);
 SymbolTree* root(SymbolTree* sym) ;
 void debugSymTree(SymbolTree* tree, int depth);
+void printNode(SymbolTree* node);
 
 // looks for var in the tree above and to the left i.e occouring before the node of tree
 // true if found false otherwise

@@ -106,7 +106,7 @@ Stmt: TVAR id assignment Expression    ';'
     @{ 
         @i @Stmt.context@ = decl(@id.sym@); 
         @t checkSubtreeDeclared(@id.sym@, @Expression.ids@);
-        @codegen { assignMemref(@id.sym@); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1);  }}
+        @codegen { assignMemref(@id.sym@); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1);  } else { printf("tree cannot be derived\n"); }}
     @}
     | id assignment Expression          ';'
     @{ 
@@ -160,11 +160,12 @@ Stmt: TVAR id assignment Expression    ';'
         @i @Stmt.context@ = metaNode(ExpressionStatement); 
         @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
         /* all children of stmt must be declared before use */
+        @codegen { printf("debugging expr stmt: \n"); debugSymTree(@Expression.ids@, 1); }
     @}
     | TRETURN Expression ';'
     @{
         @i @Stmt.context@ = returnNode();
-        @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@);
+        @t checkSubtreeDeclared(@Stmt.context@, @Expression.ids@); 
         @codegen { setTarget(getRAX()); if(burm_label(@Expression.ids@)) { burm_reduce(@Expression.ids@, 1); generate_return(); } else {printf("tree cannot be derived!\n"); } }
     @}
     ;
@@ -215,18 +216,21 @@ Expression:
     | Term
     ;
 
-CallArgs: /* empty */              @{ @i @CallArgs.ids@ = metaNode(ExpressionStatement); @}
-    | CallArgsTrailed Expression    @{ @i @CallArgs.ids@ = addChildrenMode(@CallArgsTrailed.ids@, @Expression.ids@, FALSE); @}
+CallArgs: /* empty */              @{ @i @CallArgs.ids@ = exprparam(NULL, NULL);/*metaNode(ExpressionStatement);*/ @}
+    | CallArgsTrailed Expression    @{ @i @CallArgs.ids@ =  exprparam(@CallArgsTrailed.ids@, @Expression.ids@); /*addChildrenMode(@CallArgsTrailed.ids@, @Expression.ids@, FALSE);*/ @}
     | CallArgsTrailed
-    | Expression                    @{ @i @CallArgs.ids@ = @Expression.ids@; @}
+    | Expression                    @{ @i @CallArgs.ids@ = exprparam(NULL, @Expression.ids@);/*@Expression.ids@;*/ @}
     ;
 
-CallArgsTrailed: Expression ','         @{ @i @CallArgsTrailed.ids@ = @Expression.ids@; @}
-    | CallArgsTrailed Expression ','    @{ @i @CallArgsTrailed.ids@ = addChildrenMode(@CallArgsTrailed.1.ids@, @Expression.ids@, FALSE); @}
+CallArgsTrailed: Expression ','         @{ @i @CallArgsTrailed.ids@ = exprparam(NULL, @Expression.ids@);/*@Expression.ids@;*/ @}
+    | CallArgsTrailed Expression ','    @{ @i @CallArgsTrailed.ids@ = exprparam(@CallArgsTrailed.1.ids@, @Expression.ids@); /*addChildrenMode(@CallArgsTrailed.1.ids@, @Expression.ids@, FALSE); */@}
     ;
 
 
-Call: id '(' CallArgs ')'   @{ @i @Call.ids@ = /*callNode(@id.sym@, @CallArgs.ids@)*/ addChildrenMode(newTree("!Call"), @CallArgs.ids@, FALSE); @}
+Call: id '(' CallArgs ')'   
+    @{ 
+        @i @Call.ids@ = /*callNode(@id.sym@, @CallArgs.ids@)*/ callNode(addChildrenMode(newTree("!Call"), addChild(newTree("!meta"), addChildrenMode(@id.sym@, @CallArgs.ids@, FALSE)), FALSE)); 
+    @}
     ;
 
 

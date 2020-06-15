@@ -1,1 +1,1 @@
-make && ./codea < complex.0 > res.s && gcc res.s bundle.c && ./a.out 
+make && ./codeb < complex.0 > res.s && gcc res.s bundle.c && ./a.out 

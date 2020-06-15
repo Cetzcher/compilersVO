@@ -12,6 +12,7 @@
 #define SYMREG(p) ((p)->assignedRegister)
 #define REG(p) ((p)->assignedRegister->name)
 
+reginfo* targetReg;
 const char* stackpointer = "%rsp";
 const char* basepointer = "%rbp";
 const symLinkedList* start;
@@ -37,7 +38,6 @@ void declare_func(SymbolTree* function) {
     // make room for local variables
     printf("\tPUSHQ %s \t\t# make room for basepointer\n", basepointer);
     printf("\tMOVQ %s, %s \t# set frame pointer\n", stackpointer, basepointer);
-    printf("\tPUSHQ %%rbx\n");
     if(reservedSpace) {
         printf("\tSUBQ $%d, %s \t\t# reserve space for %d vars\n", (reservedSpace) * 8, stackpointer, reservedSpace);
     }
@@ -61,12 +61,56 @@ void assignMemref(SymbolTree* node) {
     setTarget(node->assignedRegister);
 }
 
+void instr_call(SymbolTree* res, SymbolTree* call) {
+
+    /* we want to save all the needed registers */
+    reginfo* target = getTempNotRAX();
+    SymbolTree** arglist = call->children;
+    reginfo* cachedTarget = targetReg;
+    int argcount = call->count;
+    printf("\t# save argument registers (count %d) \n", argcount);
+    for(int i = 0; i < argcount; i++) {
+        reginfo* r = getArgRegister(i + 1);
+        printf("\tpushq %%%s\n", r->name);
+    } 
+    for(int i = 0; i < argcount; i++) {
+        reginfo* r = getArgRegister(i + 1);
+        SymbolTree* expr = arglist[i];
+        if(burm_label(expr)) {
+            setTarget(target);
+            burm_reduce(expr, 1);
+        }
+        printf("\tpushq %%%s\n", target->name);   // store all values on stack after putting old args on stack
+    } 
+    // pop all values from stack into correct arg registers, these are the actual expression values 
+    for(int i = argcount; i > 0; i--) {
+        reginfo* r = getArgRegister(i);
+        printf("\tpopq %%%s\n", r->name);
+    } 
+    setTarget(cachedTarget);    // need to restore original target register
+    // we need to save rax 
+    printf("\tpushq %%rax \t\t# store rax for call\n");
+    printf("\tpushq %%r10 \t\t# store r10 for call\n");
+    printf("\tpushq %%r11 \t\t# store r11 for call\n");
+    printf("\tcall %s\n", call->var);
+    printf("\tpopq %%r11 \t\t# retrive old r11 value\n");
+    printf("\tpopq %%r10 \t\t# retrive old r10 value\n");
+    emit_movq(getRAX(), target);  // move function call result from rax into target
+    printf("\tpopq %%rax \t\t# retrive old rax value\n");
+    
+    res->assignedRegister = target;
+    target->isfree = 0;
+    for(int i = argcount; i > 0; i--) {
+        reginfo* r = getArgRegister(i);
+        printf("\tpopq %%%s\n", r->name);
+    } 
+}
+
 void instr_assignment(SymbolTree* node) {
     LINK(node);
     setTarget(SYMREG(node));
 }
 
-reginfo* targetReg;
 void setTarget(reginfo* reg) {
     targetReg = reg;
 }
@@ -162,14 +206,18 @@ void instr_memacess(SymbolTree* lexpr, SymbolTree* expr) {
     // rax now contains the address, we need to load it and store it in rax again
     printf("\tpushq %%rax\n");  // push it onto the stack for the moment.
     // we now perform the labeling and set rax as the target
-    setTarget(getRAX());
+    reginfo* rax = getRAX();
+    setTarget(rax);
     if(burm_label(expr)) {
         burm_reduce(expr, 1);
         // we know that our address resides on the stack and that the expression value is in rax
-        // we pop the addr into rbx
-        printf("\tpopq %%rbx\n");   // rbx now contains previously loaded address
-        printf("\tmovq %%rax, (%%rbx)\n"); // move value into rbx
-
+        // we pop the addr into tempreg
+        rax->isfree = 0;    // need to get reg other than rax
+        reginfo* tempreg = getTempReg();
+        printf("\tpopq %%%s\n", tempreg->name);   // tempreg now contains previously loaded address
+        printf("\tmovq %%rax, (%%%s)\n", tempreg->name); // move value into tempreg
+        // free rax again 
+        rax->isfree = 1;
       }
 }
 
@@ -194,9 +242,15 @@ void postponeLabelGen(char* lab, SymbolTree* node, int memrefcount) {
 
 void finalize(SymbolTree* node) {
     // we finalize the function by moving the value into rax or, if the register is already rax doing nothing
-    node = node->link == NULL ? node : node->link;
-    if(node->assignedRegister != targetReg)
+    // node = node->link == NULL ? node : node->link;
+    LINK(node);
+    if(node->assignedRegister != targetReg) {
+        if(SYMREG(node) == NULL) {
+            printf("symreg node is null");
+            debugSymTree(node, 1);
+        }
         emit_movq(SYMREG(node), targetReg);
+    }
     node->assignedRegister->isfree = 1;
     
 }
@@ -207,7 +261,6 @@ void finalizec(SymbolTree* node) {
 }
 
 void generate_return() {
-    printf("\tPOPQ %%rbx\n");
     printf("\tleave \t\t\t# leave function  \n");
     printf("\tret\n");
 }
@@ -215,11 +268,11 @@ void generate_return() {
 // perform binary operation, expects lhs and rhs to be linked
 // either uses a temp register or uses the same register
 void __binop(char* op, SymbolTree* res, SymbolTree* lhs, SymbolTree* rhs) {
-    printf("# binop called lhs: %s (%s) rhs: %s\n", REG(lhs), op, REG(rhs));
     reginfo* target = getTempReg();
+    printf("\t\t# binop called lhs: %s (%s) rhs: %s\n", REG(lhs), op, REG(rhs));
     emit_movq(SYMREG(lhs), target);
     emit(op, SYMREG(rhs), target);
-    printf("# end binop\n");
+    printf("\t\t# end binop\n");
     __freeandset(lhs, rhs, res, target);
 }
 

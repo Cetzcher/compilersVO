@@ -75,11 +75,9 @@ SymbolTree* metaNode(MetaType type) {
     }
 }
 
-SymbolTree* callNode(SymbolTree* idnode, SymbolTree* args) {
-    SymbolTree* sym = _create(5, Call, NULL);
-    addChild(sym, idnode);
-    addChildrenMode(sym, args, FALSE);
-    return sym;
+SymbolTree* callNode(SymbolTree* n) {
+    n->op = OP_CALL;
+    return n;
 }
 
 SymbolTree* returnNode() {
@@ -138,7 +136,7 @@ SymbolTree* func(SymbolTree* name, SymbolTree* params, SymbolTree* body) {
     return funcParams;
 }
 
-SymbolTree* param(SymbolTree* before, SymbolTree* cur) {
+SymbolTree* paramWithOp(SymbolTree* before, SymbolTree* cur, MetaType type) {
     if(before == NULL) {
         if(cur == NULL) {
             return single("!meta");
@@ -148,15 +146,35 @@ SymbolTree* param(SymbolTree* before, SymbolTree* cur) {
         SymbolTree* parent = single("!meta");
         parent->parameters = cur->parameters;
         parent->memref = cur->memref;
-        parent->type = Param;
-        cur->type = Param;
+        parent->type = type;
+        cur->type = type;
         return addChild(parent, cur);  // create a parent and return that instead
     } 
     // before will now be the parent elem
     cur->parameters = ++before->parameters;
     cur->memref = ++before->memref;
-    cur->type = Param;
-    before->type = Param;
+    cur->type = type;
+    before->type = type;
+    return addChild(before, cur);   // add this as a child
+}
+
+SymbolTree* param(SymbolTree* before, SymbolTree* cur) {
+    return paramWithOp(before, cur, Param);
+}
+
+SymbolTree* exprparam(SymbolTree* before, SymbolTree* cur) {
+    if(before == NULL) {
+        if(cur == NULL) {
+            return single("!meta");
+        }
+        cur->parameters = 1;
+        SymbolTree* parent = single("!meta");
+        parent->parameters = cur->parameters;
+        parent->memref = cur->memref;
+        return addChild(parent, cur);  // create a parent and return that instead
+    } 
+    // before will now be the parent elem
+    cur->parameters = ++before->parameters;
     return addChild(before, cur);   // add this as a child
 }
 
@@ -195,7 +213,9 @@ SymbolTree* exprnode(SymbolTree* left, SymbolTree* op, SymbolTree* right) {
         return left;
     addChild(op, left);
     addChild(op, right);
-    return root(op);
+    SymbolTree* sym = root(op);
+    sym->type = OpNode;
+    return sym;
 }
 
 SymbolTree* opnode(int op, SymbolTree* child) {
@@ -267,29 +287,37 @@ void debugSymTree(SymbolTree* tree, int depth) {
     if(!DEBUG_SCOPE)
         return;
     inset(depth);
-    if(tree->var)
-        printf("#--%s[%d], line %d @%d  ", tree->var, tree->childIndex, tree->line, tree->memref);
-    else
-        printf("#--no name  ");
-
-    if(tree->type == Loop)
-        printf(" (LOOP) ");
-    else if(tree->type == Funcdef)
-        printf("Funcdef (parmcount: %d)", tree->parameters);
-    else if(tree->op == OP_NUM)
-        printf("NUM <%d>", tree->value);
-    else if (tree->type == OpNode)
-        printf("Operator (%d)", tree->op);
-    else if (tree->op == OP_VAR)
-        printf("var");
-    else
-        printf("Type: (%d)", tree->type);
-    printf(" addr: %p", tree);
-    printf("\n");
+    printNode(tree);
     for(int i = 0; i < tree->count; i++) {
         debugSymTree(tree->children[i], depth + 1);
     }
 }
+
+void printNode(SymbolTree* node) {
+    if(!DEBUG_SCOPE)
+        return;
+    if(node->var)
+        printf("#--%s[%d], line %d @%d  ", node->var, node->childIndex, node->line, node->memref);
+    else
+        printf("#--???  ");
+
+    if(node->type == Loop)
+        printf(" (LOOP) ");
+    else if(node->type == Funcdef)
+        printf("Funcdef (parmcount: %d)", node->parameters);
+    else if(node->op == OP_NUM)
+        printf("NUM <%d>", node->value);
+    else if (node->type == OpNode)
+        printf("Operator (%d)", node->op);
+    else if (node->op == OP_VAR)
+        printf("var");
+    
+    printf(" Type: (%d)", node->type);
+    printf(" addr: %p", node);
+    printf(" Is linked? [%s]", node->link == NULL  ? "NO" : "YES" );
+    printf("\n");
+}
+
 
 SymbolTree* addChildren(SymbolTree* tree, SymbolTree* parent_of_childs) {
     return addChildrenMode(tree, parent_of_childs, TRUE);
@@ -305,7 +333,7 @@ SymbolTree* addChildrenMode(SymbolTree* tree, SymbolTree* parent_of_childs, bool
 
 SymbolTree* lookupInternal(SymbolTree* tree, variable var) {
     // we go up one level and look to the left first, then recusivly go up until parent = NULL
-    if(tree->parent == NULL) {
+    if(tree->parent == NULL || var == NULL) {
         //printf("%s has not been declared\n", var);
         //exit(3);
         return NULL;
@@ -387,16 +415,21 @@ void hookVars(SymbolTree* tree, SymbolTree* currentSymbol) {
     if(link != NULL){
         // check to see if our found link is a variable or a parameter
         // if so we link them.
+
         if(link->type == Loop) {
             printf("Error: %s is a label\n", currentSymbol->var);
             criticalNoMSG(3);
         }
         if(link->type == Variable || link->type == Param) {
-            if(currentSymbol->link == NULL) // only link if they have not been linked yet
+            if(currentSymbol->link == NULL) { // only link if they have not been linked yet
                 currentSymbol->link = link;
+            
+            }
         } 
     } else {
         // if we cannot find a link the user has not declared the variable beforehand so we quit.
+        if(currentSymbol->var == NULL) 
+            return;
         printf("Error: %s use before declartation @line:%d\n", currentSymbol->var, currentSymbol->line);
         criticalNoMSG(3);
     }
@@ -405,14 +438,14 @@ void hookVars(SymbolTree* tree, SymbolTree* currentSymbol) {
 SymbolTree* checkSubtreeDeclared(SymbolTree* tree, SymbolTree* sub) {
     if(sub == NULL)
         criticalFailure(4, "Subtree is null, this should not happen in checkSubtreeDeclared()\n");
-    if(sub->type == Variable) {
+    if(sub->type == Variable || sub->type == Param) {
         hookVars(tree, sub);    // check root level
     }
     // iterate every child of sub if they are a variable then hook it otherwise
     // recurse into in depth-first manner.
     for(int i = 0; i < sub->count; i++) {
         SymbolTree* currentSymbol = sub->children[i];
-        if(currentSymbol->type == Variable) {
+        if(currentSymbol->type == Variable || currentSymbol->type == Param) {
             hookVars(tree, currentSymbol);
         } else {
             checkSubtreeDeclared(tree, currentSymbol);

@@ -1,0 +1,14 @@
+fib(a, b)
+    var a0 := a;
+    var b0 := b;
+    if 22 <= a then
+        return a;
+    else
+        return fib(b0, a0 + b0);
+    end;
+end;
+
+
+main()
+    return fib(0, 1);
+end;
